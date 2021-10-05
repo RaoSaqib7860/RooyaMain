@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import 'package:rooya_app/models/RooyaSouqModel.dart';
 import 'package:rooya_app/rooya_souq/rooya_ad_display.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';

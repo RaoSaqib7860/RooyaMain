@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-class ProgressHUD extends StatelessWidget {
-
+class ProgressHUD extends StatefulWidget {
   final Widget? child;
   final bool? inAsyncCall;
   final double? opacity;
@@ -18,22 +18,27 @@ class ProgressHUD extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ProgressHUDState createState() => _ProgressHUDState();
+}
+
+class _ProgressHUDState extends State<ProgressHUD>
+    with SingleTickerProviderStateMixin {
+  @override
   Widget build(BuildContext context) {
-    List<Widget> widgetList =  <Widget>[];
-    widgetList.add(child!);
-    if (inAsyncCall!) {
+    List<Widget> widgetList = <Widget>[];
+    widgetList.add(widget.child!);
+    if (widget.inAsyncCall!) {
       final modal = new Stack(
         children: [
           new Opacity(
-            opacity: opacity!,
-            child: ModalBarrier(dismissible: false, color: color),
+            opacity: widget.opacity!,
+            child: ModalBarrier(dismissible: false, color: widget.color),
           ),
           new Center(
-            child: CircularProgressIndicator(),
-//            Image(
-//              height: 100,
-//              image: AssetImage('assets/images/loading1.gif'),
-//            ),
+            child: SpinKitSpinningLines(
+              color: Colors.white,
+              size: 50.0,
+            ),
           ),
         ],
       );

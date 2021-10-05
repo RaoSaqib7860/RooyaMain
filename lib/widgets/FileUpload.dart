@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:rooya_app/models/FileUploadModel.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';

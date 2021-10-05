@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rooya_app/models/RooyaSouqModel.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:sizer/sizer.dart';
 

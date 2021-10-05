@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rooya_app/models/RooyaPostModel.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:rooya_app/view_pic.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -396,15 +396,15 @@ class _InputWidgetView
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SelectorButton(
-                country: state!.country!,
+                country: state!.country,
                 countries: state!.countries,
                 onCountryChanged: state!.onCountryChanged,
-                selectorType: widget.selectorType!,
-                selectorTextStyle: widget.selectorTextStyle!,
-                searchBoxDecoration: widget.searchBoxDecoration!,
-                locale: widget.locale!,
-                isEnabled: widget.isEnabled!,
-                isScrollControlled: widget.countrySelectorScrollControlled!,
+                selectorType: widget.selectorType,
+                selectorTextStyle: widget.selectorTextStyle,
+                searchBoxDecoration: widget.searchBoxDecoration,
+                locale: widget.locale,
+                isEnabled: widget.isEnabled,
+                isScrollControlled: widget.countrySelectorScrollControlled,
               ),
               SizedBox(
                 height: state!.selectorButtonBottomPadding,

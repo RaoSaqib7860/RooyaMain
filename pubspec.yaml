@@ -44,8 +44,12 @@ dependencies:
   carousel_slider: ^4.0.0
   mime: ^1.0.0
   percent_indicator: ^3.0.1
-
-
+  flutter_svg: ^0.22.0
+  flutter_spinkit: ^5.1.0
+  persistent_bottom_nav_bar: ^4.0.2
+  circular_profile_avatar: ^2.0.5
+  shimmer: ^2.0.0
+  video_thumbnail: ^0.3.3
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +72,7 @@ flutter:
     - assets/icons/
     - assets/flags/
     - assets/socialicons/
+    - assets/svg/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -81,9 +86,63 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Segoe UI
+    - family: segmdl2
       fonts:
-        - asset: assets/fonts/Segoe_UI.ttf
+        - asset: assets/fonts/segmdl2.ttf
+    - family: segoepr
+      fonts:
+        - asset: assets/fonts/segoepr.ttf
+    - family: segoeprb
+      fonts:
+        - asset: assets/fonts/segoeprb.ttf
+    - family: segoesc
+      fonts:
+        - asset: assets/fonts/segoesc.ttf
+    - family: segoescb
+      fonts:
+        - asset: assets/fonts/segoescb.ttf
+    - family: segoeui
+      fonts:
+        - asset: assets/fonts/segoeui.ttf
+    - family: segoeuib
+      fonts:
+        - asset: assets/fonts/segoeuib.ttf
+    - family: segoeuii
+      fonts:
+        - asset: assets/fonts/segoeuii.ttf
+    - family: segoeuil
+      fonts:
+        - asset: assets/fonts/segoeuil.ttf
+    - family: segoeuisl
+      fonts:
+        - asset: assets/fonts/segoeuisl.ttf
+    - family: segoeuiz
+      fonts:
+        - asset: assets/fonts/segoeuiz.ttf
+    - family: seguibl
+      fonts:
+        - asset: assets/fonts/seguibl.ttf
+    - family: seguibli
+      fonts:
+        - asset: assets/fonts/seguibli.ttf
+    - family: seguiemj
+      fonts:
+        - asset: assets/fonts/seguiemj.ttf
+    - family: seguihis
+      fonts:
+        - asset: assets/fonts/seguihis.ttf
+    - family: seguili
+      fonts:
+        - asset: assets/fonts/seguili.ttf
+    - family: seguisb
+      fonts:
+        - asset: assets/fonts/seguisb.ttf
+    - family: seguisli
+      fonts:
+        - asset: assets/fonts/seguisli.ttf
+    - family: seguisym
+      fonts:
+        - asset: assets/fonts/seguisym.ttf
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

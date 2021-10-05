@@ -3,7 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 import 'models/RooyaPostModel.dart';
-import 'utils/baseUrl.dart';
+import 'ApiUtils/baseUrl.dart';
 import 'package:sizer/sizer.dart';
 
 class ViewPic extends StatefulWidget {

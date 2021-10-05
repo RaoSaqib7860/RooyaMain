@@ -9,7 +9,7 @@ import 'package:sizer/sizer.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart' as dioo;
 import 'dart:convert';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
 

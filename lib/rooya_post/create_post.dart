@@ -13,7 +13,7 @@ import 'package:rooya_app/models/UserTagModel.dart';
 import 'package:rooya_app/rooya_post/add_hastags.dart';
 import 'package:rooya_app/rooya_post/add_usertags.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:rooya_app/widgets/FileUpload.dart';
 import 'package:shared_preferences/shared_preferences.dart';

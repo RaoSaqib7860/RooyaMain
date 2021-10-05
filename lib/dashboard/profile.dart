@@ -11,7 +11,7 @@ import 'package:rooya_app/rooya_souq/rooya_ad_display.dart';
 import 'package:rooya_app/settings/settings.dart';
 import 'package:rooya_app/story/create_story.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:rooya_app/widgets/user_post.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -220,7 +220,8 @@ class _ProfileState extends State<Profile> {
                               ),
                               children: [
                                 TextSpan(
-                                  text: '${profileInfoModel!.totalFollowings}\n',
+                                  text:
+                                      '${profileInfoModel!.totalFollowings}\n',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -568,7 +569,8 @@ class _ProfileState extends State<Profile> {
                                     ? GridView.builder(
                                         shrinkWrap: true,
                                         physics: BouncingScrollPhysics(),
-                                        itemCount: userStoryModel!.items!.length,
+                                        itemCount:
+                                            userStoryModel!.items!.length,
                                         gridDelegate:
                                             SliverGridDelegateWithFixedCrossAxisCount(
                                                 childAspectRatio: 0.8,
@@ -906,7 +908,7 @@ class _ProfileState extends State<Profile> {
     });
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = await prefs.getString('token');
-    int? user_id = await prefs.getInt('user_id');
+    String? user_id = await prefs.getString('user_id');
     final response = await http.post(
         Uri.parse('${baseUrl}getProfileSouqProducts${code}'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
@@ -940,7 +942,7 @@ class _ProfileState extends State<Profile> {
     });
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = await prefs.getString('token');
-    int? user_id = await prefs.getInt('user_id');
+    String? user_id = await prefs.getString('user_id');
     final response = await http.post(Uri.parse('${baseUrl}getStories${code}'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
         body: jsonEncode({"user_id": user_id}));

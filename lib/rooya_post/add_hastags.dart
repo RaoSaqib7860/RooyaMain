@@ -6,7 +6,7 @@ import 'package:flutter_tagging/flutter_tagging.dart';
 import 'package:get/get.dart';
 import 'package:rooya_app/models/HashTagModel.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
-import 'package:rooya_app/utils/baseUrl.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:http/http.dart' as http;
 import 'package:rooya_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';

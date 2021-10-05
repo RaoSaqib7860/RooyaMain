@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rooya_app/login/sign_in_tabs_handle.dart';
+import 'package:rooya_app/Screens/AuthScreens/sign_in_tabs_handle.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
