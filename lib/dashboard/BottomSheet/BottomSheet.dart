@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:rooya_app/Screens/Reel/Reel.dart';
 import 'package:rooya_app/utils/colors.dart';
+import '../../main.dart';
 import '../explore.dart';
 import '../Home/home.dart';
 import '../menu.dart';
-import '../profile.dart';
-import '../rooya_souq.dart';
+import '../../CreateSouq/rooya_souq.dart';
 
 class BottomSheetCustom extends StatefulWidget {
   const BottomSheetCustom({Key? key}) : super(key: key);
@@ -43,7 +44,11 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
         // Default is true.
         hideNavigationBarWhenKeyboardShows: true,
         // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
-        onItemSelected: (v) {},
+        onItemSelected: (index) {
+          if (index != 2) {
+            streamController.sink.add(10.0);
+          }
+        },
         popAllScreensOnTapOfSelectedTab: true,
         popActionScreens: PopActionScreensType.all,
         itemAnimationProperties: ItemAnimationProperties(
@@ -67,9 +72,9 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
     return [
       Home(),
       Explore(),
-      Menu(),
+      ReelPage(),
       RooyaSouq(),
-      Profile(),
+      Menu(),
     ];
   }
 
@@ -83,29 +88,29 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
           icon: Icon(Icons.explore_sharp),
           activeColorPrimary: Colors.black,
           inactiveColorPrimary: greyColor),
-      PersistentBottomNavBarItem(
-          icon: Container(
-            padding: EdgeInsets.all(5),
-            child: Icon(
-              Icons.menu,
-              size: 20,
-              color: Colors.white,
-            ),
-            decoration:
-                BoxDecoration(color: primaryColor, shape: BoxShape.circle),
-          ),
-          activeColorPrimary: Colors.black,
-          inactiveColorPrimary: greyColor),
       //chat_bubble_text
+      PersistentBottomNavBarItem(
+        icon: Icon(
+          CupertinoIcons.circle_grid_hex,
+          color: primaryColor,
+        ),
+        activeColorPrimary: CupertinoColors.black,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+      ),
       PersistentBottomNavBarItem(
           icon: Icon(Icons.lock),
           activeColorPrimary: Colors.black,
           inactiveColorPrimary: greyColor),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.person),
-        activeColorPrimary: Colors.black,
-        inactiveColorPrimary: greyColor,
-      ),
+          icon: Container(
+            padding: EdgeInsets.all(5),
+            child: Icon(
+              Icons.menu,
+              color: primaryColor,
+            ),
+          ),
+          activeColorPrimary: Colors.black,
+          inactiveColorPrimary: greyColor),
     ];
   }
 }

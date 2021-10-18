@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'ApiUtils/AuthUtils.dart';
@@ -18,11 +19,24 @@ class _SplashState extends State<Splash> {
     return prefs.getString('token');
   }
 
+  getPermission() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.storage,
+      Permission.camera,
+      Permission.manageExternalStorage,
+      Permission.photos,
+      Permission.mediaLibrary,
+      Permission.accessMediaLocation,
+    ].request();
+  }
+
   @override
   void initState() {
     // TODO: implement initState
+    getPermission();
     Future.delayed(Duration(seconds: 3), () {
-      getToken().then((token){
+      getToken().then((token) {
         if (token != null) {
           Get.offAll(() => BottomSheetCustom());
         } else {

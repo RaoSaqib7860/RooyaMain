@@ -1,13 +1,15 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:get/get.dart';
 import 'package:rooya_app/Screens/AuthScreens/SignIn/SignInController.dart';
 import 'package:http/http.dart' as http;
 import 'package:rooya_app/Screens/AuthScreens/SignUp/SignUpController.dart';
 import 'package:rooya_app/Screens/AuthScreens/VerifyOtp/verify_otp.dart';
 import 'package:rooya_app/dashboard/BottomSheet/BottomSheet.dart';
-import 'package:rooya_app/dashboard/Home/AllStoriesModel.dart';
-import 'package:rooya_app/dashboard/Home/HomeBannerModel.dart';
-import 'package:rooya_app/dashboard/Home/HomeController.dart';
+import 'package:rooya_app/dashboard/Home/Models/AllStoriesModel.dart';
+import 'package:rooya_app/dashboard/Home/Models/HomeBannerModel.dart';
+import 'package:rooya_app/dashboard/Home/HomeController/HomeController.dart';
+import 'package:rooya_app/dashboard/Home/Models/RooyaPostModel.dart';
 import 'package:rooya_app/utils/SnackbarCustom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'baseUrl.dart';
@@ -22,6 +24,7 @@ class AuthUtils {
   static final SignUp = 'usersingup';
   static final getAllStories = 'getAllStories';
   static final getHomeBanner = 'getHomeBanner';
+  static final getRooyaPostByLimite = 'getRooyaPostByLimite';
 
   static Future signIn({SignInController? controller}) async {
     controller!.isLoading.value = true;
@@ -89,7 +92,7 @@ class AuthUtils {
         }));
     controller.isLoading.value = false;
     var data = jsonDecode(response.body);
-    print('result is = $data');
+    print('result of story is = $data');
     if (data['result'] == 'success') {
       Get.to(VerifyOTP(
         userInfo: '${controller.validPhone.value}',
@@ -102,7 +105,7 @@ class AuthUtils {
 
   static Future getAllStoriesAPI({HomeController? controller}) async {
     print('call story');
-    print('token is =  ${await getToken()}');
+    log('token is =  ${await getToken()}');
     final response = await http.get(
       Uri.parse('$baseUrl$getAllStories$code'),
       headers: {
@@ -111,16 +114,12 @@ class AuthUtils {
       },
     );
     var data = jsonDecode(response.body);
-    print('getAllStoriesAPI =$data');
+    log('getAllStoriesAPI =$data');
     if (data['result'] == 'success') {
-      List list = data['data'];
-      List newList = [];
-      list.forEach((element) {
-        newList.addAll(element['storyobjects']);
-      });
       controller!.listofStories.value = List<AllStoriesModel>.from(
-          newList.map((model) => AllStoriesModel.fromJson(model)));
+          data['data'].map((model) => AllStoriesModel.fromJson(model)));
     }
+    controller!.storyLoad.value = true;
   }
 
   static Future getgetHomeBanner({HomeController? controller}) async {
@@ -138,6 +137,27 @@ class AuthUtils {
     if (data['result'] == 'success') {
       controller!.listofbanner.value = List<HomeBannerModel>.from(
           data['data'].map((model) => HomeBannerModel.fromJson(model)));
+    }
+  }
+
+  static Future getgetRooyaPostByLimite({HomeController? controller}) async {
+    print('call story');
+    print('token is =  ${await getToken()}');
+    final response = await http.post(
+        Uri.parse('$baseUrl$getRooyaPostByLimite$code'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": '${await getToken()}'
+        },
+        body: jsonEncode({"page_size": 100, "page_number": 0}));
+    var data = jsonDecode(response.body);
+    print('getgetRooyaPostByLimite =$data');
+    if (data['result'] == 'success') {
+      controller!.listofpost.value = List<RooyaPostModel>.from(
+          data['data'].map((model) => RooyaPostModel.fromJson(model)));
+      controller.postLoad.value = true;
+    } else {
+      controller!.postLoad.value = true;
     }
   }
 }

@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:rooya_app/utils/SizedConfig.dart';
 
-import 'models/RooyaPostModel.dart';
+import 'Screens/VideoPlayerService/VideoPlayer.dart';
+import 'dashboard/Home/Models/RooyaPostModel.dart';
 import 'ApiUtils/baseUrl.dart';
 import 'package:sizer/sizer.dart';
 
@@ -16,50 +19,73 @@ class ViewPic extends StatefulWidget {
 }
 
 class _ViewPicState extends State<ViewPic> {
+  int? index = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final double height = MediaQuery.of(context).size.height;
-        return CarouselSlider(
-          options: CarouselOptions(
-              height: height,
-              viewportFraction: 1.0,
-              enlargeCenterPage: false,
-              enableInfiniteScroll: false
-              // autoPlay: false,
-              ),
-          items: widget.attachment!
-              .map((item) => CachedNetworkImage(
-                        imageUrl: "$baseImageUrl${item.attachment}",
-                        imageBuilder: (context, imageProvider) => Container(
-                          height: 100.0.h,
-                          width: 100.0.w,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(1.5.h),
-                                  topRight: Radius.circular(1.5.h)),
-                              image: DecorationImage(
-                                  fit: BoxFit.fitWidth, image: imageProvider)),
-                        ),
-                        placeholder: (context, url) => Container(
-                            height: 100.0.h,
-                            width: 100.0.w,
-                            child: Center(child: CircularProgressIndicator())),
-                        errorWidget: (context, url, error) => Container(
-                            height: 100.0.h,
-                            width: 100.0.w,
-                            child: Center(child: Icon(Icons.error))),
-                      )
-                  // Image.network(
-                  //   '$baseImageUrl${item.attachment}',
-                  //   fit: BoxFit.contain,
-                  //   //height: height,
-                  // )
-                  )
-              .toList(),
-        );
-      },
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Get.back();
+          },
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: CarouselSlider(
+              options: CarouselOptions(
+                  height: height,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: false,
+                  enableInfiniteScroll: false,
+                  onPageChanged: (i, dd) {
+                    setState(() {
+                      index = i;
+                    });
+                  }),
+              items: widget.attachment!.map((item) {
+                if (item.type == 'video') {
+                  return VideoForURL(
+                    url: "$baseImageUrl${item.attachment}",
+                  );
+                } else {
+                  return CachedNetworkImage(
+                    imageUrl: "$baseImageUrl${item.attachment}",
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => Container(
+                        height: 100.0.h,
+                        width: 100.0.w,
+                        child: Center(child: CircularProgressIndicator())),
+                    errorWidget: (context, url, error) => Container(
+                        height: 100.0.h,
+                        width: 100.0.w,
+                        child: Center(child: Icon(Icons.error))),
+                  );
+                }
+              }).toList(),
+            ),
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Text(
+            '${index! + 1} /' + '${widget.attachment!.length}',
+            style: TextStyle(color: Colors.white),
+          ),
+          SizedBox(
+            height: 30,
+          )
+        ],
+      ),
     );
   }
 }

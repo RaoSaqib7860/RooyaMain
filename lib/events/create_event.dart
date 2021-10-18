@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rooya_app/events/CreateEventController.dart';
 import 'package:rooya_app/models/HashTagModel.dart';
 import 'package:rooya_app/models/UserTagModel.dart';
-import 'package:rooya_app/rooya_post/add_hastags.dart';
-import 'package:rooya_app/rooya_post/add_usertags.dart';
+import 'package:rooya_app/rooya_post/CreatePost/add_hastags.dart';
+import 'package:rooya_app/rooya_post/CreatePost/add_usertags.dart';
+import 'package:rooya_app/utils/AppFonts.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
+import 'package:rooya_app/utils/SizedConfig.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:sizer/sizer.dart';
 
@@ -26,16 +31,39 @@ class _CreateEventState extends State<CreateEvent> {
   List hashTags = [];
   List usersTags = [];
   List usersTagsPic = [];
+  final controller = Get.put(CreateEventController());
+
+  @override
+  void initState() {
+    controller.getImagePath();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ProgressHUD(
         inAsyncCall: isLoading,
         opacity: 0.7,
-        child: Scaffold(
-          //resizeToAvoidBottomInset: false,
-          body: SafeArea(
-            child: SingleChildScrollView(
+        child: SafeArea(
+          child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              centerTitle: true,
+              title: Text(
+                'Create Event',
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                    fontFamily: AppFonts.segoeui),
+              ),
+              leading: IconButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  icon: Icon(Icons.arrow_back, color: Colors.black)),
+            ),
+            body: SingleChildScrollView(
               child: Padding(
                 padding:
                     EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 2.5.w),
@@ -43,115 +71,218 @@ class _CreateEventState extends State<CreateEvent> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(onPressed: (){
-                          Get.back();
-                        }, icon: Icon(Icons.arrow_back)),
-                       selectedValue!=4? InkWell(onTap: (){
-                         setState(() {
-                           ++selectedValue;
-                         });
-                       },
-
-                         child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              borderRadius: BorderRadius.circular(20)
-                            ),
-                            child: Text(
-                              'NEXT',
-                              style: TextStyle(
-                                fontFamily: 'Segoe UI',
-                                fontSize: 14.0.sp,
-                                color:  Colors.white,
+                        InkWell(
+                          onTap: () {
+                            controller.selectLocation(context, 'image');
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              height: height * 0.060,
+                              width: width * 0.120,
+                              child: Icon(
+                                Icons.camera_alt_outlined,
+                                size: 40,
+                                color: Colors.black38,
                               ),
                             ),
                           ),
-                       ):Container()
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: () async {
-                            image = await _picker.pickImage(
-                                source: ImageSource.camera);
-                            setState(() {});
-                          },
-                          child: Container(
-                            height: 10.0.h,
-                            width: 10.0.h,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey[400]!)),
-                            child: Icon(
-                              Icons.camera_alt_outlined,
-                              size: 4.5.h,
-                              color: Colors.black54,
+                        ),
+                        Expanded(
+                          child: Obx(
+                            () => Container(
+                              height: height * 0.060,
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: width * 0.030),
+                              child: ListView.separated(
+                                itemBuilder: (c, i) {
+                                  return InkWell(
+                                    onTap: () {
+                                      if (!controller.listOfSelectedImages
+                                              .contains(controller
+                                                  .listOfImageFilea[i]) &&
+                                          controller
+                                                  .listOfSelectedImages.length <
+                                              8) {
+                                        controller.listOfSelectedImages.add(
+                                            controller.listOfImageFilea[i]);
+                                      }
+                                    },
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        height: height * 0.060,
+                                        width: width * 0.120,
+                                        child: Image.file(
+                                          File(controller.listOfImageFilea[i]),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                scrollDirection: Axis.horizontal,
+                                separatorBuilder:
+                                    (BuildContext context, int index) {
+                                  return SizedBox(
+                                    width: 10,
+                                  );
+                                },
+                                itemCount: controller.listOfImageFilea.length,
+                              ),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: 2.5.w,
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            image = await _picker.pickImage(
-                                source: ImageSource.gallery);
-                            setState(() {});
-                          },
-                          child: Container(
-                            height: 10.0.h,
-                            width: 10.0.h,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey[400]!)),
-                            child: Icon(
-                              Icons.photo_outlined,
-                              size: 4.5.h,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        )
                       ],
+                      crossAxisAlignment: CrossAxisAlignment.end,
                     ),
                     SizedBox(
                       height: 2.5.w,
                     ),
-                    Container(
-                      height: 27.0.h,
-                      width: 100.0.h,
-                      margin: EdgeInsets.symmetric(horizontal: 1.0.w),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                              fit: BoxFit.fill,
-                              image: NetworkImage(
-                                  'https://vanuatufm107.com/wp-content/uploads/2021/03/shutterstock_61104537504_8ef67d97-5056-a36a-0b9f5fc892eae781-1.jpg'))),
-                    ),
-                    SizedBox(
-                      height: 2.0.h,
-                    ),
-                    Container(
-                      height: 10.0.h,
-                      child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 10,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              height: 10.0.h,
-                              width: 10.0.h,
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     IconButton(
+                    //         onPressed: () {
+                    //           Get.back();
+                    //         },
+                    //         icon: Icon(Icons.arrow_back)),
+                    //     selectedValue != 4
+                    //         ? InkWell(
+                    //             onTap: () {
+                    //               setState(() {
+                    //                 ++selectedValue;
+                    //               });
+                    //             },
+                    //             child: Container(
+                    //               padding: EdgeInsets.symmetric(
+                    //                   horizontal: 10, vertical: 5),
+                    //               decoration: BoxDecoration(
+                    //                   color: primaryColor,
+                    //                   borderRadius: BorderRadius.circular(20)),
+                    //               child: Text(
+                    //                 'NEXT',
+                    //                 style: TextStyle(
+                    //                   fontFamily: 'Segoe UI',
+                    //                   fontSize: 14.0.sp,
+                    //                   color: Colors.white,
+                    //                 ),
+                    //               ),
+                    //             ),
+                    //           )
+                    //         : Container()
+                    //   ],
+                    // ),
+                    // Row(
+                    //   children: [
+                    //     InkWell(
+                    //       onTap: () async {
+                    //         image = await _picker.pickImage(
+                    //             source: ImageSource.camera);
+                    //         setState(() {});
+                    //       },
+                    //       child: Container(
+                    //         height: 10.0.h,
+                    //         width: 10.0.h,
+                    //         decoration: BoxDecoration(
+                    //             borderRadius: BorderRadius.circular(10),
+                    //             border: Border.all(color: Colors.grey[400]!)),
+                    //         child: Icon(
+                    //           Icons.camera_alt_outlined,
+                    //           size: 4.5.h,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(
+                    //       width: 2.5.w,
+                    //     ),
+                    //     InkWell(
+                    //       onTap: () async {
+                    //         image = await _picker.pickImage(
+                    //             source: ImageSource.gallery);
+                    //         setState(() {});
+                    //       },
+                    //       child: Container(
+                    //         height: 10.0.h,
+                    //         width: 10.0.h,
+                    //         decoration: BoxDecoration(
+                    //             borderRadius: BorderRadius.circular(10),
+                    //             border: Border.all(color: Colors.grey[400]!)),
+                    //         child: Icon(
+                    //           Icons.photo_outlined,
+                    //           size: 4.5.h,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //     )
+                    //   ],
+                    // ),
+                    // SizedBox(
+                    //   height: 2.5.w,
+                    // ),
+                    Obx(
+                      () => controller.listOfSelectedImages.isEmpty
+                          ? Container(
+                              height: 27.0.h,
+                              width: 100.0.h,
+                              child: Icon(
+                                Icons.image,
+                                color: Colors.black38,
+                                size: 50,
+                              ),
+                              margin: EdgeInsets.symmetric(horizontal: 1.0.w),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border.all(width: 1, color: Colors.black38),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            )
+                          : Container(
+                              height: 27.0.h,
+                              width: 100.0.h,
                               margin: EdgeInsets.symmetric(horizontal: 1.0.w),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
-                                  image: DecorationImage(
-                                      fit: BoxFit.fill,
-                                      image: NetworkImage(
-                                          'https://vanuatufm107.com/wp-content/uploads/2021/03/shutterstock_61104537504_8ef67d97-5056-a36a-0b9f5fc892eae781-1.jpg'))),
-                            );
-                          }),
+                                  border: Border.all(color: Colors.grey[200]!)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.file(
+                                  File(controller.listOfSelectedImages[0]),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                    ),
+                    SizedBox(
+                      height: 1.5.h,
+                    ),
+                    Obx(
+                      () => controller.listOfSelectedImages.isNotEmpty
+                          ? Container(
+                              height: 10.0.h,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount:
+                                      controller.listOfSelectedImages.length,
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                      height: 10.0.h,
+                                      width: 10.0.h,
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(
+                                              '${controller.listOfSelectedImages[index]}'),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            )
+                          : Container(),
                     ),
                     SizedBox(
                       height: 1.5.h,
@@ -173,7 +304,7 @@ class _CreateEventState extends State<CreateEvent> {
                                     child: Text(
                                       'LIVE',
                                       style: TextStyle(
-                                        fontFamily: 'Segoe UI',
+                                        fontFamily: AppFonts.segoeui,
                                         fontSize: 9.0.sp,
                                         fontWeight: FontWeight.w600,
                                         color: selectedValue == 0
@@ -196,7 +327,7 @@ class _CreateEventState extends State<CreateEvent> {
                                     child: Text(
                                       'BRIEF',
                                       style: TextStyle(
-                                        fontFamily: 'Segoe UI',
+                                        fontFamily: AppFonts.segoeui,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 9.0.sp,
                                         color: selectedValue == 1
@@ -219,7 +350,7 @@ class _CreateEventState extends State<CreateEvent> {
                                     child: Text(
                                       'FACILITIES',
                                       style: TextStyle(
-                                        fontFamily: 'Segoe UI',
+                                        fontFamily: AppFonts.segoeui,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 9.0.sp,
                                         color: selectedValue == 2
@@ -242,7 +373,7 @@ class _CreateEventState extends State<CreateEvent> {
                                     child: Text(
                                       'LOCATION AND TIME',
                                       style: TextStyle(
-                                        fontFamily: 'Segoe UI',
+                                        fontFamily: AppFonts.segoeui,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 9.0.sp,
                                         color: selectedValue == 3
@@ -265,7 +396,7 @@ class _CreateEventState extends State<CreateEvent> {
                                     child: Text(
                                       'ATTEND',
                                       style: TextStyle(
-                                        fontFamily: 'Segoe UI',
+                                        fontFamily: AppFonts.segoeui,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 9.0.sp,
                                         color: selectedValue == 4
@@ -290,7 +421,7 @@ class _CreateEventState extends State<CreateEvent> {
                               Text(
                                 'User will view live Event and Rooya Post with below information',
                                 style: TextStyle(
-                                  fontFamily: 'Segoe UI',
+                                  fontFamily: AppFonts.segoeui,
                                   fontSize: 9.0.sp,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black,
@@ -324,9 +455,14 @@ class _CreateEventState extends State<CreateEvent> {
                                       border: Border.all(
                                     color: Colors.grey[300]!,
                                   )),
-                                  child: Text(hashTags.length == 0
-                                      ? '#Add Hashtags'
-                                      : '${hashTags.toString().replaceAll('[', '').replaceAll(']', '')}'),
+                                  child: Text(
+                                    hashTags.length == 0
+                                        ? '#Add Hashtags'
+                                        : '${hashTags.toString().replaceAll('[', '').replaceAll(']', '')}',
+                                    style: TextStyle(
+                                      fontFamily: AppFonts.segoeui,
+                                    ),
+                                  ),
                                 ),
                               ),
                               SizedBox(
@@ -364,7 +500,12 @@ class _CreateEventState extends State<CreateEvent> {
                                       ? Padding(
                                           padding: EdgeInsets.symmetric(
                                               vertical: 5.0),
-                                          child: Text('@Tag People'),
+                                          child: Text(
+                                            '@Tag People',
+                                            style: TextStyle(
+                                              fontFamily: AppFonts.segoeui,
+                                            ),
+                                          ),
                                         )
                                       : Wrap(
                                           children: usersTagsPic
@@ -401,6 +542,9 @@ class _CreateEventState extends State<CreateEvent> {
                                     errorBorder: InputBorder.none,
                                     disabledBorder: InputBorder.none,
                                     hintText: 'Description',
+                                    hintStyle: TextStyle(
+                                      fontFamily: AppFonts.segoeui,
+                                    ),
                                     contentPadding: EdgeInsets.only(
                                         left: 15,
                                         bottom: 11,
@@ -442,6 +586,10 @@ class _CreateEventState extends State<CreateEvent> {
                                                   disabledBorder:
                                                       InputBorder.none,
                                                   hintText: 'Phone Number',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        AppFonts.segoeui,
+                                                  ),
                                                   contentPadding:
                                                       EdgeInsets.only(
                                                           left: 15,
@@ -488,6 +636,10 @@ class _CreateEventState extends State<CreateEvent> {
                                                       InputBorder.none,
                                                   hintText:
                                                       'Paste Google Map Location',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        AppFonts.segoeui,
+                                                  ),
                                                   contentPadding:
                                                       EdgeInsets.only(
                                                           left: 15,
@@ -533,6 +685,10 @@ class _CreateEventState extends State<CreateEvent> {
                                                   disabledBorder:
                                                       InputBorder.none,
                                                   hintText: 'Your Website',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        AppFonts.segoeui,
+                                                  ),
                                                   contentPadding:
                                                       EdgeInsets.only(
                                                           left: 15,
@@ -579,6 +735,10 @@ class _CreateEventState extends State<CreateEvent> {
                                                   disabledBorder:
                                                       InputBorder.none,
                                                   hintText: 'Start Date',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        AppFonts.segoeui,
+                                                  ),
                                                   contentPadding:
                                                       EdgeInsets.only(
                                                           left: 15,
@@ -613,6 +773,10 @@ class _CreateEventState extends State<CreateEvent> {
                                                   disabledBorder:
                                                       InputBorder.none,
                                                   hintText: 'End Date',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        AppFonts.segoeui,
+                                                  ),
                                                   contentPadding:
                                                       EdgeInsets.only(
                                                           left: 15,
@@ -632,22 +796,22 @@ class _CreateEventState extends State<CreateEvent> {
                                         children: [
                                           Row(
                                             children: [
-                                             Container(
-                                               padding: EdgeInsets.all(3),
-                                               decoration: BoxDecoration(
-                                                 border: Border.all(color: Colors.black),
-                                                 shape: BoxShape.circle
-                                               ),
-                                               child: Container(
-                                                 height: 12,
-                                                 width: 12,
-                                                 decoration: BoxDecoration(
-                                                   color: Colors.black,
-                                                     border: Border.all(color: Colors.black),
-                                                     shape: BoxShape.circle
-                                                 ),
-                                               ),
-                                             ),
+                                              Container(
+                                                padding: EdgeInsets.all(3),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors.black),
+                                                    shape: BoxShape.circle),
+                                                child: Container(
+                                                  height: 12,
+                                                  width: 12,
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.black,
+                                                      border: Border.all(
+                                                          color: Colors.black),
+                                                      shape: BoxShape.circle),
+                                                ),
+                                              ),
                                               SizedBox(
                                                 width: 3.0.w,
                                               ),
@@ -659,27 +823,31 @@ class _CreateEventState extends State<CreateEvent> {
                                                     // controller: descriptionController,
                                                     cursorColor: Colors.black,
                                                     keyboardType:
-                                                    TextInputType.phone,
+                                                        TextInputType.phone,
                                                     readOnly: true,
 
                                                     decoration:
-                                                    new InputDecoration(
+                                                        new InputDecoration(
                                                       border: InputBorder.none,
                                                       focusedBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       enabledBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       errorBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       disabledBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       hintText: 'Free',
+                                                      hintStyle: TextStyle(
+                                                        fontFamily:
+                                                            AppFonts.segoeui,
+                                                      ),
                                                       contentPadding:
-                                                      EdgeInsets.only(
-                                                          left: 15,
-                                                          bottom: 11,
-                                                          top: 11,
-                                                          right: 15),
+                                                          EdgeInsets.only(
+                                                              left: 15,
+                                                              bottom: 11,
+                                                              top: 11,
+                                                              right: 15),
                                                     ),
                                                   ),
                                                 ),
@@ -690,17 +858,15 @@ class _CreateEventState extends State<CreateEvent> {
                                               Container(
                                                 padding: EdgeInsets.all(3),
                                                 decoration: BoxDecoration(
-                                                    border: Border.all(color: primaryColor),
-                                                    shape: BoxShape.circle
-                                                ),
+                                                    border: Border.all(
+                                                        color: primaryColor),
+                                                    shape: BoxShape.circle),
                                                 child: Container(
                                                   height: 12,
                                                   width: 12,
                                                   decoration: BoxDecoration(
                                                       color: primaryColor,
-
-                                                      shape: BoxShape.circle
-                                                  ),
+                                                      shape: BoxShape.circle),
                                                 ),
                                               ),
                                               SizedBox(
@@ -714,27 +880,31 @@ class _CreateEventState extends State<CreateEvent> {
                                                     // controller: descriptionController,
                                                     cursorColor: Colors.black,
                                                     keyboardType:
-                                                    TextInputType.phone,
+                                                        TextInputType.phone,
                                                     readOnly: true,
 
                                                     decoration:
-                                                    new InputDecoration(
+                                                        new InputDecoration(
                                                       border: InputBorder.none,
                                                       focusedBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       enabledBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       errorBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       disabledBorder:
-                                                      InputBorder.none,
+                                                          InputBorder.none,
                                                       hintText: 'Paid',
+                                                      hintStyle: TextStyle(
+                                                        fontFamily:
+                                                            AppFonts.segoeui,
+                                                      ),
                                                       contentPadding:
-                                                      EdgeInsets.only(
-                                                          left: 15,
-                                                          bottom: 11,
-                                                          top: 11,
-                                                          right: 15),
+                                                          EdgeInsets.only(
+                                                              left: 15,
+                                                              bottom: 11,
+                                                              top: 11,
+                                                              right: 15),
                                                     ),
                                                   ),
                                                 ),
@@ -775,7 +945,12 @@ class _CreateEventState extends State<CreateEvent> {
                                                           InputBorder.none,
                                                       disabledBorder:
                                                           InputBorder.none,
-                                                      hintText: 'Add Event Payment Link',
+                                                      hintText:
+                                                          'Add Event Payment Link',
+                                                      hintStyle: TextStyle(
+                                                        fontFamily:
+                                                            AppFonts.segoeui,
+                                                      ),
                                                       contentPadding:
                                                           EdgeInsets.only(
                                                               left: 15,
@@ -788,28 +963,32 @@ class _CreateEventState extends State<CreateEvent> {
                                               ),
                                             ],
                                           ),
-
-                                          SizedBox(height: 10.0.h,),
+                                          SizedBox(
+                                            height: 10.0.h,
+                                          ),
                                           Container(
                                             width: 60.0.w,
                                             height: 8.0.h,
-                                            padding: EdgeInsets.symmetric(horizontal: 15,vertical: 7),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 15, vertical: 7),
                                             decoration: BoxDecoration(
                                                 color: primaryColor,
-                                                borderRadius: BorderRadius.circular(5)
-                                            ),
+                                                borderRadius:
+                                                    BorderRadius.circular(5)),
                                             child: Center(
                                               child: Text('Create Event',
                                                   style: TextStyle(
                                                     fontFamily:
-                                                    'Segoe UI',
+                                                        AppFonts.segoeui,
                                                     fontSize: 16.0.sp,
                                                     fontWeight: FontWeight.w600,
                                                     color: Colors.white,
                                                   )),
                                             ),
                                           ),
-                                          SizedBox(height: 5.0.h,),
+                                          SizedBox(
+                                            height: 5.0.h,
+                                          ),
                                         ],
                                       )
                                     : Container()

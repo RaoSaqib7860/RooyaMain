@@ -3,11 +3,11 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
-import 'package:rooya_app/models/RooyaPostModel.dart';
+import 'package:rooya_app/dashboard/Home/Models/RooyaPostModel.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/colors.dart';
-import 'package:rooya_app/widgets/user_post.dart';
+import 'package:rooya_app/dashboard/Home/HomeComponents/user_post.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:http/http.dart' as http;

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:rooya_app/create_all.dart';
 import 'package:rooya_app/events/upcoming_events.dart';
 import 'package:rooya_app/explore_uae/explore_uae.dart';
+import 'package:rooya_app/utils/AppFonts.dart';
 import 'package:sizer/sizer.dart';
 
 class Menu extends StatefulWidget {
@@ -11,8 +12,7 @@ class Menu extends StatefulWidget {
 }
 
 class _MenuState extends State<Menu> {
-
-  List<String> mMenuIcons=[
+  List<String> mMenuIcons = [
     'assets/icons/create.png',
     'assets/icons/events.png',
     'assets/icons/explore.png',
@@ -25,7 +25,7 @@ class _MenuState extends State<Menu> {
     'assets/icons/weather.png',
     'assets/icons/hotels.png',
   ];
-  List<String> mMenuTitle=[
+  List<String> mMenuTitle = [
     'Create',
     'Events',
     'Explore',
@@ -43,32 +43,38 @@ class _MenuState extends State<Menu> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5.0.w,vertical: 5.0.w),
+        padding: EdgeInsets.symmetric(horizontal: 5.0.w, vertical: 5.0.w),
         child: Column(
           children: [
-            SizedBox(height: 2.0.h,),
-            Image.asset('assets/images/logo.png',
-              height: 10.0.h,),
-
+            SizedBox(
+              height: 2.0.h,
+            ),
+            Image.asset(
+              'assets/images/logo.png',
+              height: 8.0.h,
+            ),
+            SizedBox(
+              height: 2.0.h,
+            ),
             Expanded(
               child: GridView.builder(
                 itemCount: mMenuTitle.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisSpacing: 5.0.w,
+                    crossAxisSpacing: 5.0.w,
                     mainAxisSpacing: 5.0.w,
                     crossAxisCount: 3),
                 itemBuilder: (BuildContext context, int index) {
-                  return  InkWell(
-                    onTap: (){
-                      switch(index){
+                  return InkWell(
+                    onTap: () {
+                      switch (index) {
                         case 0:
-                          Get.to(()=>CreateAll());
+                          Get.to(() => CreateAll());
                           break;
                         case 1:
-                          Get.to(()=>UpComingEvents());
+                          Get.to(() => UpComingEvents());
                           break;
                         case 3:
-                          Get.to(()=>ExploreUAE());
+                          Get.to(() => ExploreUAE());
                           break;
                       }
                     },
@@ -90,15 +96,22 @@ class _MenuState extends State<Menu> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset(mMenuIcons[index],
-                              height: 4.0.h,),
-                            SizedBox(height: 1.0.h,),
-                            Text('${mMenuTitle[index]}',style: TextStyle(
-                              fontFamily: 'Segoe UI',
-                              fontSize: 13,
-                              color: const Color(0xff1e1e1e),
+                            Image.asset(
+                              mMenuIcons[index],
+                              height: 3.5.h,
                             ),
-                            textAlign: TextAlign.center,)
+                            SizedBox(
+                              height: 1.5.h,
+                            ),
+                            Text(
+                              '${mMenuTitle[index]}',
+                              style: TextStyle(
+                                fontFamily: AppFonts.segoeui,
+                                fontSize: 12,
+                                color: const Color(0xff1e1e1e),
+                              ),
+                              textAlign: TextAlign.center,
+                            )
                           ],
                         ),
                       ),
