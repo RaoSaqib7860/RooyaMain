@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <g id="Layer_2" data-name="Layer 2" transform="translate(0.25 0.25)">
+    <g id="email">
+      <rect id="Rectangle_2762" data-name="Rectangle 2762" width="20" height="20" transform="translate(-0.25 -0.25)" fill="#5a5a5a" opacity="0"/>
+      <path id="Path_1508" data-name="Path 1508" d="M15.813,4H4.438A2.438,2.438,0,0,0,2,6.438v8.125A2.437,2.437,0,0,0,4.438,17H15.813a2.437,2.437,0,0,0,2.438-2.437V6.438A2.437,2.437,0,0,0,15.813,4Zm0,1.625L10.531,9.257a.812.812,0,0,1-.812,0L4.438,5.625Z" transform="translate(-0.375 -0.75)" fill="#5a5a5a"/>
+    </g>
+  </g>
+</svg>

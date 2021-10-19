@@ -1,10 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rooya_app/Screens/VideoPlayerService/VideoPlayer.dart';
+import 'package:rooya_app/utils/ShimmerEffect.dart';
+import 'package:rooya_app/utils/SizedConfig.dart';
 
 class ViewStory extends StatefulWidget {
-  String? picUrl;
+  final String? picUrl;
+  final String? src;
 
-  ViewStory({Key? key, @required this.picUrl}) : super(key: key);
+  ViewStory({Key? key, @required this.picUrl, this.src}) : super(key: key);
 
   @override
   _ViewStoryState createState() => _ViewStoryState();
@@ -13,35 +18,59 @@ class ViewStory extends StatefulWidget {
 class _ViewStoryState extends State<ViewStory> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: Image.network(
-              widget.picUrl!,
-              //fit: BoxFit.cover,
-              // height: double.infinity,
-              // width: double.infinity,
-              alignment: Alignment.center,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Container(
+          height: height,
+          width: width,
+          child: Stack(
             children: [
-              IconButton(
-                  onPressed: () {
-                    Get.back();
-                  },
-                  icon: Icon(Icons.arrow_back)),
-              IconButton(
-                  onPressed: () {
-                    Get.back();
-                  },
-                  icon: Icon(Icons.more_vert)),
+              Center(
+                child: widget.src == 'photo'
+                    ? CachedNetworkImage(
+                        imageUrl: '${widget.picUrl}',
+                        fit: BoxFit.cover,
+                        progressIndicatorBuilder:
+                            (context, url, downloadProgress) => ShimerEffect(
+                          child: Image.asset(
+                            'assets/images/home_banner.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Image.asset(
+                          'assets/images/home_banner.png',
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : VideoForURL(
+                        url: "${widget.picUrl}",
+                      ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                      )),
+                  // IconButton(
+                  //     onPressed: () {
+                  //       Get.back();
+                  //     },
+                  //     icon: Icon(
+                  //       Icons.more_vert,
+                  //       color: Colors.white,
+                  //     )),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

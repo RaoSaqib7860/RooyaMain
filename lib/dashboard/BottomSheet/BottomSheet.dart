@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:rooya_app/ExploreRooya/ExploreRooya.dart';
 import 'package:rooya_app/Screens/Reel/Reel.dart';
 import 'package:rooya_app/utils/colors.dart';
 import '../../main.dart';
-import '../explore.dart';
 import '../Home/home.dart';
 import '../menu.dart';
 import '../../CreateSouq/rooya_souq.dart';
@@ -71,7 +71,7 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
   List<Widget> _buildScreens() {
     return [
       Home(),
-      Explore(),
+      ExploreRooya(),
       ReelPage(),
       RooyaSouq(),
       Menu(),

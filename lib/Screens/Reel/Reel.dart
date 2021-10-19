@@ -170,7 +170,7 @@ class _ReelPageState extends State<ReelPage> {
                               ),
                               InkWell(
                                 onTap: () {
-                                //  Get.to(CameraApp());
+                                 Get.to(CameraApp());
                                 },
                                 child: Container(
                                   child: Icon(

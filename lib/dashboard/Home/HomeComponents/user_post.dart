@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -18,12 +19,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../profile.dart';
+
 class UserPost extends StatefulWidget {
   RooyaPostModel? rooyaPostModel;
-  Function? onPostLike;
-  Function? onPostUnLike;
+  Function()? onPostLike;
+  Function()? onPostUnLike;
+  Function()? comment;
 
-  UserPost({Key? key, this.rooyaPostModel, this.onPostLike, this.onPostUnLike})
+  UserPost(
+      {Key? key,
+      this.rooyaPostModel,
+      this.onPostLike,
+      this.onPostUnLike,
+      this.comment})
       : super(key: key);
 
   @override
@@ -78,6 +87,11 @@ class _UserPostState extends State<UserPost> {
                     : '$baseImageUrl${widget.rooyaPostModel!.userPicture}',
                 elevation: 5,
                 radius: 23,
+                onTap: () {
+                  Get.to(Profile(
+                    userID: '${widget.rooyaPostModel!.userPosted}',
+                  ));
+                },
                 borderColor: primaryColor,
                 borderWidth: 1,
               ),
@@ -276,45 +290,105 @@ class _UserPostState extends State<UserPost> {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () {
+                  onTap: () async {
                     if (!isLikeLoading) {
-                      widget.rooyaPostModel!.islike!
-                          ? rooyaPostUnLike()
-                          : rooyaPostLike();
+                      isLikeLoading = true;
+                      if (widget.rooyaPostModel!.islike!) {
+                        await rooyaPostUnLike();
+                      } else {
+                        await rooyaPostLike();
+                      }
+                      isLikeLoading = false;
                     }
                   },
-                  child: Image.asset(
-                    'assets/icons/like.png',
-                    height: 2.h,
-                    color: widget.rooyaPostModel!.islike!
-                        ? primaryColor
-                        : Colors.black54,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 3, right: 5),
+                        child: Text(
+                          '${widget.rooyaPostModel!.likecount}',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontFamily: AppFonts.segoeui),
+                        ),
+                      ),
+                      Image.asset(
+                        'assets/icons/like.png',
+                        height: 2.h,
+                        color: widget.rooyaPostModel!.islike!
+                            ? primaryColor
+                            : Colors.black54,
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(
                   width: 3.0.w,
                 ),
-                Image.asset(
-                  'assets/icons/comment.png',
-                  height: 2.h,
-                  color: Colors.black54,
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 3, right: 5),
+                      child: Text(
+                        '${widget.rooyaPostModel!.comments}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                            fontFamily: AppFonts.segoeui),
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/icons/comment.png',
+                      height: 2.h,
+                      color: Colors.black54,
+                    ),
+                  ],
                 ),
                 SizedBox(
                   width: 3.0.w,
                 ),
-                Image.asset(
-                  'assets/icons/repeat.png',
-                  height: 2.0.h,
-                  width: 3.0.h,
-                  color: Colors.black54,
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 3, right: 5),
+                      child: Text(
+                        '${widget.rooyaPostModel!.userPosted}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                            fontFamily: AppFonts.segoeui),
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/icons/repeat.png',
+                      height: 2.0.h,
+                      width: 3.0.h,
+                      color: Colors.black54,
+                    ),
+                  ],
                 ),
                 SizedBox(
                   width: 3.0.w,
                 ),
-                Image.asset(
-                  'assets/icons/share.png',
-                  height: 2.h,
-                  color: Colors.black54,
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 3, right: 5),
+                      child: Text(
+                        '',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                            fontFamily: AppFonts.segoeui),
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/icons/share.png',
+                      height: 2.h,
+                      color: Colors.black54,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -484,31 +558,19 @@ class _UserPostState extends State<UserPost> {
   }
 
   Future<void> rooyaPostLike() async {
-    setState(() {
-      isLikeLoading = true;
-    });
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = await prefs.getString('token');
     String? userId = await prefs.getString('user_id');
-    final response = await http.post(Uri.parse('${baseUrl}postLike${code}'),
+    print('userid=$userId');
+    final response = await http.post(Uri.parse('${baseUrl}postLike$code'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
         body: jsonEncode(
             {"post_id": widget.rooyaPostModel!.postId, "user_id": userId}));
-
-    setState(() {
-      isLikeLoading = false;
-    });
-
-    // print(response.request);
-    // print(response.statusCode);
     print(response.body);
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['result'] == 'success') {
-        setState(() {
-          widget.onPostLike!();
-        });
+        widget.onPostLike!.call();
       } else {
         setState(() {});
       }
@@ -516,45 +578,28 @@ class _UserPostState extends State<UserPost> {
   }
 
   Future<void> rooyaPostUnLike() async {
-    setState(() {
-      isLikeLoading = true;
-    });
+    print('Unlike call now');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = await prefs.getString('token');
-    int? userId = await prefs.getInt('user_id');
-    final response = await http.post(Uri.parse('${baseUrl}postUnLike${code}'),
+    String? userId = await prefs.getString('user_id');
+    final response = await http.post(Uri.parse('${baseUrl}postUnLike$code'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
         body: jsonEncode(
             {"post_id": widget.rooyaPostModel!.postId, "user_id": userId}));
-
-    setState(() {
-      isLikeLoading = false;
-    });
-
-    // print(response.request);
-    // print(response.statusCode);
-    // print(response.body);
-
+    log('${response.body}');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['result'] == 'success') {
-        setState(() {
-          widget.onPostUnLike!();
-        });
-      } else {
-        setState(() {});
+        widget.onPostUnLike!.call();
       }
     }
   }
 
   Future<void> rooyaPostComment() async {
-    setState(() {
-      isCommentLoading = true;
-    });
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = await prefs.getString('token');
     String? userId = await prefs.getString('user_id');
-    final response = await http.post(Uri.parse('${baseUrl}postComments${code}'),
+    final response = await http.post(Uri.parse('${baseUrl}postComments$code'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
         body: jsonEncode({
           "post_id": widget.rooyaPostModel!.postId,
@@ -563,24 +608,20 @@ class _UserPostState extends State<UserPost> {
           "user_type": "user",
           "text": mCommentController.text
         }));
-
-    setState(() {
-      isCommentLoading = false;
-    });
-
     // print(response.request);
     // print(response.statusCode);
-    print(response.body);
+    widget.comment!.call();
+    print('data iss = ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['result'] == 'success') {
-        setState(() {
-          mCommentController.text = '';
-        });
-      } else {
-        setState(() {});
-      }
-    }
+    // if (response.statusCode == 200) {
+    //   final data = jsonDecode(response.body);
+    //   if (data['result'] == 'success') {
+    //     setState(() {
+    //       mCommentController.text = '';
+    //     });
+    //   } else {
+    //     setState(() {});
+    //   }
+    // }
   }
 }

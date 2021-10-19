@@ -158,7 +158,7 @@ class _RooyaSouqAllAdsState extends State<RooyaSouqAllAds> {
                           children: [
                             CachedNetworkImage(
                               imageUrl:
-                                  '$baseImageUrl${mRooyaSouqList[index].attachment![0].source}',
+                                  '$baseImageUrl${mRooyaSouqList[index].images![0].attachment}',
                               imageBuilder: (context, imageProvider) =>
                                   Container(
                                 height: 15.0.h,

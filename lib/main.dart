@@ -1,6 +1,5 @@
 import 'dart:async';
-
-//import 'package:camera/camera.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:rooya_app/splash.dart';
 import 'package:sizer/sizer.dart';
@@ -13,18 +12,18 @@ StreamController<double>.broadcast();
 
 final RouteObserver<ModalRoute<void>> routeObserver =
 RouteObserver<ModalRoute<void>>();
-//List<CameraDescription> cameras = [];
+List<CameraDescription> cameras = [];
 
 T? ambiguate<T>(T? value) => value;
 
 void main() async{
   // Fetch the available cameras before initializing the app.
-  // try {
-  //   WidgetsFlutterBinding.ensureInitialized();
-  //   cameras = await availableCameras();
-  // } on CameraException catch (e) {
-  //   logError(e.code, e.description);
-  // }
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    logError(e.code, e.description);
+  }
   runApp(MyApp());
 }
 

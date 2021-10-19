@@ -20,7 +20,7 @@ class _SplashState extends State<Splash> {
   }
 
   getPermission() async {
-    Map<Permission, PermissionStatus> statuses = await [
+    await [
       Permission.location,
       Permission.storage,
       Permission.camera,

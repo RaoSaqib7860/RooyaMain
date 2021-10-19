@@ -5,10 +5,13 @@ import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:rooya_app/ApiUtils/AuthUtils.dart';
 import 'package:rooya_app/create_all.dart';
 import 'package:rooya_app/dashboard/Home/HomeController/HomeController.dart';
 import 'package:rooya_app/dashboard/Home/Models/RooyaPostModel.dart';
+import 'package:rooya_app/dashboard/profile.dart';
+import 'package:rooya_app/rooya_post/CreatePost/create_post.dart';
 import 'package:rooya_app/story/create_story.dart';
 import 'package:rooya_app/utils/AppFonts.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
@@ -16,8 +19,8 @@ import 'package:rooya_app/utils/ShimmerEffect.dart';
 import 'package:rooya_app/utils/SizedConfig.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:rooya_app/dashboard/Home/HomeComponents/user_post.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
-
 import 'HomeComponents/StoryViews.dart';
 
 class Home extends StatefulWidget {
@@ -32,9 +35,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    print('Home call now ');
-    // getRooyaPost();
     AuthUtils.getAllStoriesAPI(controller: controller);
     AuthUtils.getgetHomeBanner(controller: controller);
     AuthUtils.getgetRooyaPostByLimite(controller: controller);
@@ -44,6 +44,10 @@ class _HomeState extends State<Home> {
   Future<void> _pullRefresh() async {
     // why use freshWords var? https://stackoverflow.com/a/52992836/2301224
   }
+
+  SharedPreferences? prefs;
+
+  GetStorage storage = GetStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +63,21 @@ class _HomeState extends State<Home> {
                   EdgeInsets.symmetric(horizontal: 1.0.h, vertical: 1.30.h),
               child: Row(
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
-                    height: 4.0.h,
+                  InkWell(
+                    onTap: () async {
+                      SharedPreferences? prefs =
+                          await SharedPreferences.getInstance();
+                      String? userId = await prefs.getString('user_id');
+                      Get.to(Profile(
+                        userID: userId,
+                      ));
+                    },
+                    child: CircularProfileAvatar(
+                      '${storage.read('user_picture') ?? 'https://www.gravatar.com/avatar/test@test.com.jpg?s=200&d=mm'}',
+                      radius: 15,
+                      borderColor: primaryColor,
+                      borderWidth: 1,
+                    ),
                   ),
                   Expanded(
                     child: Container(
@@ -459,8 +475,10 @@ class _HomeState extends State<Home> {
                               ),
                               InkWell(
                                 onTap: () {
-                                  AuthUtils.getgetRooyaPostByLimite(
-                                      controller: controller);
+                                  Get.to(CreatePost())!.then((value) {
+                                    AuthUtils.getgetRooyaPostByLimite(
+                                        controller: controller);
+                                  });
                                 },
                                 child: Container(
                                   padding: EdgeInsets.all(1.0.h),
@@ -514,15 +532,28 @@ class _HomeState extends State<Home> {
                                                 setState(() {
                                                   controller.listofpost[index]
                                                       .islike = true;
-                                                  // ++mRooyaPostsList[index].likecount;
+                                                  controller.listofpost[index]
+                                                      .likecount = controller
+                                                          .listofpost[index]
+                                                          .likecount! +
+                                                      1;
                                                 });
                                               },
                                               onPostUnLike: () {
                                                 setState(() {
                                                   controller.listofpost[index]
                                                       .islike = false;
-                                                  // --mRooyaPostsList[index].likecount;
+                                                  controller.listofpost[index]
+                                                      .likecount = controller
+                                                          .listofpost[index]
+                                                          .likecount! -
+                                                      1;
                                                 });
+                                              },
+                                              comment: () {
+                                                AuthUtils
+                                                    .getgetRooyaPostByLimite(
+                                                        controller: controller);
                                               },
                                             );
                                           })))
@@ -550,8 +581,8 @@ selectLocation(HomeController controller) {
           elevation: 0,
           backgroundColor: Colors.black.withOpacity(0.5),
           insetPadding: EdgeInsets.symmetric(horizontal: width / 10),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
           //this right here
           child: Container(
             height: height / 5,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:rooya_app/Screens/AuthScreens/SignIn/SignInController.dart';
 import 'package:http/http.dart' as http;
 import 'package:rooya_app/Screens/AuthScreens/SignUp/SignUpController.dart';
@@ -50,11 +51,16 @@ class AuthUtils {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['result'] == 'success') {
+        GetStorage storage = GetStorage();
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('user_id', '${data['data'][0]['user_id'] ?? ''}');
         prefs.setString('user_name', '${data['data'][0]['user_name'] ?? ''}');
         prefs.setString('user_email', '${data['data'][0]['user_email'] ?? ''}');
         prefs.setString('user_phone', '${data['data'][0]['user_phone'] ?? ''}');
+        prefs.setString('user_picture',
+            '${data['data'][0]['user_picture'] ?? 'https://www.gravatar.com/avatar/test@test.com.jpg?s=200&d=mm'}');
+        storage.write('user_picture',
+            '${data['data'][0]['user_picture'] ?? 'https://www.gravatar.com/avatar/test@test.com.jpg?s=200&d=mm'}');
         prefs.setString(
             'user_firstname', '${data['data'][0]['user_firstname'] ?? ''}');
         prefs.setString(
@@ -114,7 +120,7 @@ class AuthUtils {
       },
     );
     var data = jsonDecode(response.body);
-    log('getAllStoriesAPI =$data');
+    print('getAllStoriesAPI =$data');
     if (data['result'] == 'success') {
       controller!.listofStories.value = List<AllStoriesModel>.from(
           data['data'].map((model) => AllStoriesModel.fromJson(model)));
