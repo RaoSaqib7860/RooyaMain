@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:reorderables/reorderables.dart';
 import 'package:rooya_app/CreateSouq/RooyaSouqController.dart';
+import 'package:rooya_app/dashboard/BottomSheet/BottomSheet.dart';
 import 'package:rooya_app/models/FileUploadModel.dart';
 import 'package:rooya_app/models/HashTagModel.dart';
 import 'package:rooya_app/models/RooyaCategoryModel.dart';
@@ -16,6 +17,7 @@ import 'package:rooya_app/utils/ProgressHUD.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/SizedConfig.dart';
 import 'package:rooya_app/utils/colors.dart';
+import 'package:rooya_app/widgets/EditImageGlobal.dart';
 import 'package:rooya_app/widgets/FileUpload.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
@@ -58,6 +60,14 @@ class _CreateSouqState extends State<CreateSouq> {
 
   @override
   Widget build(BuildContext context) {
+    void _onReorder(int oldIndex, int newIndex) {
+      setState(() {
+        var map = controller.listOfSelectedImages.removeAt(oldIndex);
+        controller.listOfSelectedImages.insert(newIndex, map);
+      });
+      setState(() {});
+    }
+
     return ProgressHUD(
         inAsyncCall: isLoading,
         opacity: 0.7,
@@ -79,6 +89,36 @@ class _CreateSouqState extends State<CreateSouq> {
                     Get.back();
                   },
                   icon: Icon(Icons.arrow_back, color: Colors.black)),
+              actions: [
+                InkWell(
+                  onTap: () {
+                    controller.gallarypress();
+                  },
+                  child: Icon(
+                    Icons.photo_outlined,
+                    size: 30,
+                    color: primaryColor,
+                  ),
+                ),
+                SizedBox(
+                  width: width * 0.010,
+                ),
+                InkWell(
+                  onTap: () {
+                    //  controller.selectLocation(context);
+                    controller.onImageButtonPressed(
+                        ImageSource.camera, 'image');
+                  },
+                  child: Icon(
+                    Icons.camera_alt_outlined,
+                    size: 30,
+                    color: primaryColor,
+                  ),
+                ),
+                SizedBox(
+                  width: width * 0.030,
+                ),
+              ],
             ),
             body: Padding(
               padding: EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 2.5.w),
@@ -87,23 +127,6 @@ class _CreateSouqState extends State<CreateSouq> {
                   children: [
                     Row(
                       children: [
-                        InkWell(
-                          onTap: () {
-                            controller.selectLocation(context, 'image');
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              height: height * 0.060,
-                              width: width * 0.120,
-                              child: Icon(
-                                Icons.camera_alt_outlined,
-                                size: 40,
-                                color: Colors.black38,
-                              ),
-                            ),
-                          ),
-                        ),
                         Expanded(
                           child: Obx(
                             () => Container(
@@ -194,27 +217,88 @@ class _CreateSouqState extends State<CreateSouq> {
                     Obx(
                       () => controller.listOfSelectedImages.isNotEmpty
                           ? Container(
-                              height: 10.0.h,
-                              child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      controller.listOfSelectedImages.length,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      height: 10.0.h,
-                                      width: 10.0.h,
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                        child: Image.file(
-                                          File(
-                                              '${controller.listOfSelectedImages[index]}'),
-                                          fit: BoxFit.cover,
+                              width: width,
+                              child: ReorderableRow(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: List.generate(
+                                    controller.listOfSelectedImages.length,
+                                    (index) {
+                                  return Container(
+                                    height: 10.0.h,
+                                    width: 10.0.h,
+                                    key: UniqueKey(),
+                                    margin: EdgeInsets.only(right: 10),
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          height: 10.0.h,
+                                          width: 10.0.h,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Image.file(
+                                              File(
+                                                  '${controller.listOfSelectedImages[index]}'),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                        Align(
+                                          alignment: Alignment.topRight,
+                                          child: InkWell(
+                                            child: Icon(
+                                              Icons.cancel,
+                                              color: primaryColor,
+                                            ),
+                                            onTap: () {
+                                              controller.listOfSelectedImages
+                                                  .removeAt(index);
+                                            },
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.topLeft,
+                                          child: InkWell(
+                                            child: Container(
+                                              child: Icon(
+                                                Icons.edit,
+                                                size: 15,
+                                                color: primaryColor,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  shape: BoxShape.circle),
+                                              padding: EdgeInsets.all(3),
+                                              margin: EdgeInsets.all(3),
+                                            ),
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (c) =>
+                                                          EditImageGlobal(
+                                                            path: controller
+                                                                    .listOfSelectedImages[
+                                                                index],
+                                                          ))).then((value) {
+                                                if (value.toString().length >
+                                                    5) {
+                                                  controller
+                                                          .listOfSelectedImages[
+                                                      index] = '$value';
+                                                  setState(() {});
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }),
+                                onReorder: _onReorder,
+                              ),
                             )
                           : Container(),
                     ),
@@ -465,7 +549,7 @@ class _CreateSouqState extends State<CreateSouq> {
                                 });
                                 Get.snackbar('Saved', 'Product saved');
                                 Future.delayed(Duration(seconds: 2), () {
-                                  Get.back();
+                                  Get.offAll(() => BottomSheetCustom());
                                 });
                               } else {
                                 Get.snackbar(

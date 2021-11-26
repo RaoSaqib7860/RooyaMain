@@ -5,7 +5,7 @@ class RooyaSouqModel {
   List<Images>? images;
   String? time;
   String? userName;
-  Null userPicture;
+  String? userPicture;
   int? userId;
   String? name;
   int? price;
@@ -14,32 +14,34 @@ class RooyaSouqModel {
   int? featured;
   String? categoryName;
   int? categoryId;
+  bool? isLike;
 
   RooyaSouqModel(
       {this.postId,
-        this.productId,
-        this.text,
-        this.images,
-        this.time,
-        this.userName,
-        this.userPicture,
-        this.userId,
-        this.name,
-        this.price,
-        this.status,
-        this.location,
-        this.featured,
-        this.categoryName,
-        this.categoryId});
+      this.productId,
+      this.text,
+      this.images,
+      this.time,
+      this.userName,
+      this.userPicture,
+      this.userId,
+      this.name,
+      this.price,
+      this.status,
+      this.location,
+      this.featured,
+      this.categoryName,
+      this.categoryId,
+      this.isLike});
 
   RooyaSouqModel.fromJson(Map<String, dynamic> json) {
     postId = json['post_id'];
     productId = json['product_id'];
     text = json['text'];
     if (json['images'] != null) {
-      images =  <Images>[];
+      images = <Images>[];
       json['images'].forEach((v) {
-        images!.add( Images.fromJson(v));
+        images!.add(new Images.fromJson(v));
       });
     }
     time = json['time'];
@@ -53,6 +55,7 @@ class RooyaSouqModel {
     featured = json['featured'];
     categoryName = json['category_name'];
     categoryId = json['category_id'];
+    isLike = json['is_like'];
   }
 
   Map<String, dynamic> toJson() {
@@ -74,6 +77,7 @@ class RooyaSouqModel {
     data['featured'] = this.featured;
     data['category_name'] = this.categoryName;
     data['category_id'] = this.categoryId;
+    data['is_like'] = this.isLike;
     return data;
   }
 }

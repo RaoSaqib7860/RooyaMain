@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:rooya_app/utils/SizedConfig.dart';
 
 import 'Screens/VideoPlayerService/VideoPlayer.dart';
@@ -58,18 +59,21 @@ class _ViewPicState extends State<ViewPic> {
                     url: "$baseImageUrl${item.attachment}",
                   );
                 } else {
-                  return CachedNetworkImage(
-                    imageUrl: "$baseImageUrl${item.attachment}",
-                    fit: BoxFit.contain,
-                    placeholder: (context, url) => Container(
-                        height: 100.0.h,
-                        width: 100.0.w,
-                        child: Center(child: CircularProgressIndicator())),
-                    errorWidget: (context, url, error) => Container(
-                        height: 100.0.h,
-                        width: 100.0.w,
-                        child: Center(child: Icon(Icons.error))),
+                  return PhotoView(
+                    imageProvider: NetworkImage("$baseImageUrl${item.attachment}"),
                   );
+                  // return CachedNetworkImage(
+                  //   imageUrl: "$baseImageUrl${item.attachment}",
+                  //   fit: BoxFit.contain,
+                  //   placeholder: (context, url) => Container(
+                  //       height: 100.0.h,
+                  //       width: 100.0.w,
+                  //       child: Center(child: CircularProgressIndicator())),
+                  //   errorWidget: (context, url, error) => Container(
+                  //       height: 100.0.h,
+                  //       width: 100.0.w,
+                  //       child: Center(child: Icon(Icons.error))),
+                  // );
                 }
               }).toList(),
             ),

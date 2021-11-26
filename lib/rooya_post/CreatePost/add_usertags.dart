@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tagging/flutter_tagging.dart';
 import 'package:get/get.dart';
@@ -72,17 +73,17 @@ class _AddUserTagsState extends State<AddUserTags> {
                         initialItems: _selectedUserTags,
                         textFieldConfiguration: TextFieldConfiguration(
                           decoration: InputDecoration(
-                            border: InputBorder.none,
-                            filled: true,
-                            fillColor: Colors.green.withAlpha(30),
-                            hintText: 'Search User',
-                            labelText: 'Select User',
+                              border: InputBorder.none,
+                              filled: true,
+                              fillColor: Colors.green.withAlpha(30),
+                              hintText: 'Search User',
+                              labelText: 'Select User',
                               hintStyle: TextStyle(
                                   fontSize: 13, fontFamily: AppFonts.segoeui),
                               labelStyle: TextStyle(
-                                  fontSize: 13,color: primaryColor,
-                                  fontFamily: AppFonts.segoeui)
-                          ),
+                                  fontSize: 13,
+                                  color: primaryColor,
+                                  fontFamily: AppFonts.segoeui)),
                         ),
                         findSuggestions: getUsertags,
                         // additionCallback: (value) {
@@ -100,7 +101,20 @@ class _AddUserTagsState extends State<AddUserTags> {
                         // },
                         configureSuggestion: (user) {
                           return SuggestionConfiguration(
-                            title: Text(user.userName!),
+                            title: Row(
+                              children: [
+                                CircularProfileAvatar(
+                                  '$baseImageUrl${user.userPicture}',
+                                  radius: 15,
+                                  borderColor: primaryColor,
+                                  borderWidth: 1,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text(user.userName!),
+                              ],
+                            ),
                             additionWidget: Chip(
                               avatar: Icon(
                                 Icons.add_circle,
@@ -118,7 +132,12 @@ class _AddUserTagsState extends State<AddUserTags> {
                         },
                         configureChip: (user) {
                           return ChipConfiguration(
-                            label: Text(user.userName!),
+                            label: Row(
+                              children: [
+                                Text(user.userName!),
+                                Text(user.userName!),
+                              ],
+                            ),
                             backgroundColor: Colors.green,
                             labelStyle: TextStyle(color: Colors.white),
                             deleteIconColor: Colors.white,

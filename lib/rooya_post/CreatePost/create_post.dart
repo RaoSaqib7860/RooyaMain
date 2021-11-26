@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart' as dioo;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tagging/flutter_tagging.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:reorderables/reorderables.dart';
+import 'package:rooya_app/Screens/Reel/ReelCamera/ReelCamera.dart';
+import 'package:rooya_app/dashboard/BottomSheet/BottomSheet.dart';
 import 'package:rooya_app/models/FileUploadModel.dart';
 import 'package:rooya_app/models/HashTagModel.dart';
 import 'package:rooya_app/models/UserTagModel.dart';
@@ -19,14 +19,22 @@ import 'package:rooya_app/utils/AppFonts.dart';
 import 'package:rooya_app/utils/ProgressHUD.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/utils/SizedConfig.dart';
+import 'package:rooya_app/utils/SnackbarCustom.dart';
 import 'package:rooya_app/utils/colors.dart';
-import 'package:rooya_app/widgets/FileUpload.dart';
+import 'package:rooya_app/widgets/EditImageGlobal.dart';
+import 'package:rooya_app/widgets/VideoTrimGlobal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
 
+String newPathis = '';
+
 class CreatePost extends StatefulWidget {
+  final bool? fromEvent;
+  final String? event_id;
+
+  const CreatePost({this.fromEvent = false, this.event_id = '0'});
+
   @override
   _CreatePostState createState() => _CreatePostState();
 }
@@ -47,15 +55,26 @@ class _CreatePostState extends State<CreatePost> {
   TextEditingController descriptionController = TextEditingController();
   var controller = Get.put(CreateRooyaPostController());
 
+  String dropDownValue = 'Public';
+
   @override
   void initState() {
     controller.getImagePath();
     controller.getVideoPath();
+    controller.getFilesPath();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    void _onReorder(int oldIndex, int newIndex) {
+      setState(() {
+        Map map = controller.listOfSelectedfiles.removeAt(oldIndex);
+        controller.listOfSelectedfiles.insert(newIndex, map);
+      });
+      setState(() {});
+    }
+
     return SafeArea(
       child: ProgressHUD(
           inAsyncCall: isLoading,
@@ -66,7 +85,7 @@ class _CreatePostState extends State<CreatePost> {
               elevation: 0,
               centerTitle: true,
               title: Text(
-                'Create Post',
+                widget.fromEvent! ? 'Create Event' : 'Create Post',
                 style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -80,7 +99,7 @@ class _CreatePostState extends State<CreatePost> {
               actions: [
                 InkWell(
                   onTap: () {
-                    controller.selectLocation(context, 'gallery');
+                    controller.gallarypress();
                   },
                   child: Icon(
                     Icons.photo_outlined,
@@ -93,7 +112,26 @@ class _CreatePostState extends State<CreatePost> {
                 ),
                 InkWell(
                   onTap: () {
-                    controller.selectLocation(context, 'camera');
+                    // controller.selectLocation(context);
+                    Get.to(CameraApp())!.then((value) {
+                      print('path is = $newPathis');
+                      if (newPathis.isNotEmpty) {
+                        if (newPathis.contains('mp4')) {
+                          if (!controller.listOfSelectedfiles
+                              .contains('$newPathis')) {
+                            controller.listOfSelectedfiles
+                                .add({'video': '$newPathis'});
+                          }
+                        } else {
+                          if (!controller.listOfSelectedfiles
+                              .contains('$newPathis')) {
+                            controller.listOfSelectedfiles
+                                .add({'image': '$newPathis'});
+                          }
+                        }
+                        newPathis = '';
+                      }
+                    });
                   },
                   child: Icon(
                     Icons.camera_alt_outlined,
@@ -266,35 +304,147 @@ class _CreatePostState extends State<CreatePost> {
                                         height: height * 0.010,
                                       ),
                                     ),
-                                    SliverGrid(
-                                        gridDelegate:
-                                            SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 4,
-                                                mainAxisSpacing: 5,
-                                                crossAxisSpacing: 5),
-                                        delegate: SliverChildBuilderDelegate(
-                                            (BuildContext context, int index) {
-                                          Map value = controller
-                                              .listOfSelectedfiles[index];
-                                          return ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            child: value.containsKey('image')
-                                                ? Image.file(
-                                                    File(controller
-                                                            .listOfSelectedfiles[
-                                                        index]['image']),
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Thumbnails(
-                                                    thumb: controller
-                                                            .listOfSelectedfiles[
-                                                        index]['video'],
+                                    SliverToBoxAdapter(
+                                      child: Container(
+                                        width: width,
+                                        child: ReorderableRow(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: List.generate(
+                                              controller.listOfSelectedfiles
+                                                  .length, (index) {
+                                            Map value = controller
+                                                .listOfSelectedfiles[index];
+                                            return Container(
+                                              key: UniqueKey(),
+                                              height: 10.0.h,
+                                              width: 10.0.h,
+                                              margin:
+                                                  EdgeInsets.only(right: 10),
+                                              child: Stack(
+                                                children: [
+                                                  Container(
+                                                    height: 10.0.h,
+                                                    width: 10.0.h,
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: value.containsKey(
+                                                              'image')
+                                                          ? Image.file(
+                                                              File(controller
+                                                                      .listOfSelectedfiles[
+                                                                  index]['image']),
+                                                              fit: BoxFit.cover,
+                                                            )
+                                                          : Thumbnails(
+                                                              thumb: controller
+                                                                      .listOfSelectedfiles[
+                                                                  index]['video'],
+                                                            ),
+                                                    ),
                                                   ),
-                                          );
-                                        },
-                                            childCount: controller
-                                                .listOfSelectedfiles.length)),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.topRight,
+                                                    child: InkWell(
+                                                      child: Icon(
+                                                        Icons.cancel,
+                                                        color: primaryColor,
+                                                      ),
+                                                      onTap: () {
+                                                        controller
+                                                            .listOfSelectedfiles
+                                                            .removeAt(index);
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.topLeft,
+                                                    child: InkWell(
+                                                      child: Container(
+                                                        child: Icon(
+                                                          Icons.edit,
+                                                          size: 15,
+                                                          color: primaryColor,
+                                                        ),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                                color: Colors
+                                                                    .white,
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                        padding:
+                                                            EdgeInsets.all(3),
+                                                        margin:
+                                                            EdgeInsets.all(3),
+                                                      ),
+                                                      onTap: () {
+                                                        if (value.containsKey(
+                                                            'image')) {
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder: (c) =>
+                                                                      EditImageGlobal(
+                                                                        path: controller.listOfSelectedfiles[index]
+                                                                            [
+                                                                            'image'],
+                                                                      ))).then(
+                                                              (value) {
+                                                            if (value
+                                                                    .toString()
+                                                                    .length >
+                                                                5) {
+                                                              controller
+                                                                      .listOfSelectedfiles[
+                                                                  index] = {
+                                                                'image':
+                                                                    '$value'
+                                                              };
+                                                              setState(() {});
+                                                            }
+                                                          });
+                                                        } else {
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder: (c) =>
+                                                                      TrimmerViewGlobal(
+                                                                        file: File(controller.listOfSelectedfiles[index]
+                                                                            [
+                                                                            'video']),
+                                                                      ))).then(
+                                                              (value) {
+                                                            if (value
+                                                                    .toString()
+                                                                    .length >
+                                                                5) {
+                                                              controller
+                                                                      .listOfSelectedfiles[
+                                                                  index] = {
+                                                                'video':
+                                                                    '$value'
+                                                              };
+                                                              setState(() {});
+                                                            }
+                                                          });
+                                                        }
+                                                      },
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }),
+                                          onReorder: _onReorder,
+                                        ),
+                                      ),
+                                    ),
                                     SliverToBoxAdapter(
                                       child: TextFormField(
                                         controller: descriptionController,
@@ -421,17 +571,47 @@ class _CreatePostState extends State<CreatePost> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Container(
-                        //   padding: EdgeInsets.symmetric(
-                        //       vertical: 10, horizontal: 15),
-                        //   decoration: BoxDecoration(
-                        //       color: Colors.grey[400],
-                        //       borderRadius: BorderRadius.circular(25)),
-                        //   child: Text('Preview'),
-                        // ),
-                        // SizedBox(
-                        //   width: 2.5.w,
-                        // ),
+                        Expanded(
+                          child: Container(
+                            height: height * 0.050,
+                            padding:
+                                EdgeInsets.symmetric(horizontal: width * 0.050),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Colors.grey[300]),
+                            child: DropdownButton<String>(
+                              items: <String>[
+                                'Public',
+                                'My Followers',
+                                'Only Me'
+                              ].map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(
+                                    value,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: AppFonts.segoeui),
+                                  ),
+                                );
+                              }).toList(),
+                              underline: SizedBox(),
+                              isExpanded: true,
+                              hint: Text(
+                                '$dropDownValue',
+                                style: TextStyle(
+                                    fontSize: 12, fontFamily: AppFonts.segoeui),
+                              ),
+                              onChanged: (value) {
+                                dropDownValue = value!;
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: width * 0.050,
+                        ),
                         InkWell(
                           onTap: () async {
                             setState(() {
@@ -453,7 +633,14 @@ class _CreatePostState extends State<CreatePost> {
                             setState(() {
                               isLoading = false;
                             });
-                            Get.back();
+                            if (!widget.fromEvent!) {
+                              snackBarSuccess('Create post successfully');
+                            } else {
+                              snackBarSuccess('Create Event successfully');
+                            }
+                            Future.delayed(Duration(seconds: 2), () {
+                              Get.offAll(() => BottomSheetCustom());
+                            });
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
@@ -496,28 +683,52 @@ class _CreatePostState extends State<CreatePost> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = await prefs.getString('user_id');
     String? token = await prefs.getString('token');
-    print(jsonEncode({
-      "post_type": "photos",
-      "user_type": "user",
-      "user_id": userId,
-      "privacy": "public",
-      "post_description": descriptionController.text,
-      "hashtag": hashTags,
-      "tagusers": usersTags,
-      "files": files
-    }));
-    final response = await http.post(Uri.parse('${baseUrl}addpostNew$code'),
+    print('$userId and $hashTags and $usersTags');
+    // print(jsonEncode({
+    //   "post_type": "photos",
+    //   "user_type": "user",
+    //   "user_id": userId,
+    //   "privacy": dropDownValue == 'Public' ? "public" :dropDownValue == 'My Followers'?'friends': "me",
+    //   "post_description": descriptionController.text,
+    //   "hashtag": hashTags,
+    //   "tagusers": usersTags,
+    //   "files": files
+    // }));
+    final response = await http.post(
+        Uri.parse(
+            '${baseUrl}${widget.fromEvent! ? 'addpostNewEvent' : 'addpostNew'}$code'),
         headers: {"Content-Type": "application/json", "Authorization": token!},
-        body: jsonEncode({
-          "post_type": "photos",
-          "user_type": "user",
-          "user_id": userId,
-          "privacy": "public",
-          "post_description": descriptionController.text,
-          "hashtag": hashTags,
-          "tagusers": usersTags,
-          "files": files
-        }));
+        body: widget.fromEvent!
+            ? jsonEncode({
+                "post_type": "photos",
+                "user_type": "user",
+                "event_id": widget.event_id,
+                "in_event": "1",
+                "user_id": int.parse(userId!),
+                "privacy": dropDownValue == 'Public'
+                    ? "public"
+                    : dropDownValue == 'My Followers'
+                        ? 'friends'
+                        : "me",
+                "post_description": descriptionController.text,
+                "hashtag": hashTags,
+                "tagusers": usersTags,
+                "files": files
+              })
+            : jsonEncode({
+                "post_type": "photos",
+                "user_type": "user",
+                "user_id": int.parse(userId!),
+                "privacy": dropDownValue == 'Public'
+                    ? "public"
+                    : dropDownValue == 'My Followers'
+                        ? 'friends'
+                        : "me",
+                "post_description": descriptionController.text,
+                "hashtag": hashTags,
+                "tagusers": usersTags,
+                "files": files
+              }));
     print('response is = ${response.body}');
   }
 }

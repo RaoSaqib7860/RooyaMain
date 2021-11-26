@@ -4,12 +4,14 @@ import 'package:rooya_app/dashboard/Home/HomeController/HomeController.dart';
 import 'package:rooya_app/events/create_event.dart';
 import 'package:rooya_app/rooya_post/CreatePost/create_post.dart';
 import 'package:rooya_app/rooya_souq/create_souq.dart';
-import 'package:rooya_app/story/create_story.dart';
 import 'package:rooya_app/utils/AppFonts.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:sizer/sizer.dart';
-
+import 'ApiUtils/AuthUtils.dart';
+import 'Screens/Reel/ReelCamera/ReelCamera.dart';
 import 'dashboard/Home/home.dart';
+import 'events/CreateNewEvent/CreateNewEvent.dart';
+import 'rooya_post/Story/CreateStory.dart';
 
 class CreateAll extends StatefulWidget {
   @override
@@ -47,7 +49,7 @@ class _CreateAllState extends State<CreateAll> {
               ),
               InkWell(
                 onTap: () {
-                  Get.to(() => CreatePost());
+                  Get.to(CreatePost());
                 },
                 child: Container(
                   height: 9.0.h,
@@ -81,8 +83,13 @@ class _CreateAllState extends State<CreateAll> {
               ),
               InkWell(
                 onTap: () {
-                  final controller = Get.find<HomeController>();
-                  selectLocation(controller);
+                  fromHomeStory = '0';
+                  Get.to(CameraApp(
+                    fromStory: true,
+                  ))!
+                      .then((value) {
+                    fromHomeStory = '0';
+                  });
                 },
                 child: Container(
                   height: 9.0.h,
@@ -150,7 +157,8 @@ class _CreateAllState extends State<CreateAll> {
               ),
               InkWell(
                 onTap: () {
-                  Get.to(() => CreateEvent());
+                  Get.to(() => CreateNewEvent());
+                  // Get.to(() => CreateEvent());
                 },
                 child: Container(
                   height: 9.0.h,

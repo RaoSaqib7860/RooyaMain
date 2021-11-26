@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:rooya_app/splash.dart';
 import 'package:sizer/sizer.dart';
 import 'package:get/get.dart';
@@ -18,6 +20,8 @@ T? ambiguate<T>(T? value) => value;
 
 void main() async{
   // Fetch the available cameras before initializing the app.
+  await GetStorage.init();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   try {
     WidgetsFlutterBinding.ensureInitialized();
     cameras = await availableCameras();
@@ -38,7 +42,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'ROOYA',
           defaultTransition: Transition.cupertino,
-          transitionDuration: Duration(milliseconds: 700),
+          //transitionDuration: Duration(milliseconds: 700),
           theme: ThemeData(
             scaffoldBackgroundColor: Colors.white,
             primarySwatch: Colors.deepPurple,

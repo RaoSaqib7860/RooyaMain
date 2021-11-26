@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -9,19 +10,38 @@ import 'package:rooya_app/utils/colors.dart';
 class CreateEventController extends GetxController {
   static const MethodChannel _channel = const MethodChannel('storage_path');
 
+  static Future<String> get videoPath async {
+    print('channel calling ....');
+    final String data = await _channel.invokeMethod('getVideosPath');
+    return data;
+  }
+
   static Future<String> get imagesPath async {
     final String data = await _channel.invokeMethod('getImagesPath');
     return data;
   }
 
+  getVideoPath() async {
+    String value = await videoPath;
+    print('${value}');
+    List list = jsonDecode(value);
+    list.forEach((element) {
+      List list2 = element['files'];
+      list2.forEach((element) {
+        listOfVidoeFilea.add({'video': '${element['path']}'});
+      });
+    });
+  }
+
   getImagePath() async {
     String value = await imagesPath;
+    print('${value}');
     List list = jsonDecode(value);
     list.forEach((element) {
       List list2 = element['files'];
       list2.forEach((element) {
         if (!listOfImageFilea.contains(element)) {
-          listOfImageFilea.add('$element');
+          listOfImageFilea.add({'image': '${element}'});
         }
       });
     });
@@ -31,7 +51,7 @@ class CreateEventController extends GetxController {
 
   onImageButtonPressed(ImageSource source, String tag) async {
     try {
-      final pickedFile;
+      PickedFile? pickedFile;
       if (tag == 'image') {
         pickedFile = await _picker.getImage(
           source: source,
@@ -42,14 +62,40 @@ class CreateEventController extends GetxController {
         );
       }
       print('pickedFile = ${pickedFile!.path}');
-      if (!listOfSelectedImages.contains(pickedFile.path) &&
-          listOfSelectedImages.length < 8) {
-        listOfSelectedImages.add('${pickedFile.path}');
+      if (!listOfSelectedfiles.contains(pickedFile.path) &&
+          listOfSelectedfiles.length < 8) {
+        if (pickedFile.path.contains('.mp4')) {
+          listOfSelectedfiles.add({'video': '${pickedFile.path}'});
+        } else {
+          listOfSelectedfiles.add({'image': '${pickedFile.path}'});
+        }
       }
     } catch (e) {}
   }
 
-  selectLocation(BuildContext context, String tag) {
+  gallarypress() async {
+    try {
+      final FilePickerResult? pickedFile;
+      pickedFile = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4'],
+      );
+      print('pickedFile = ${pickedFile!.paths}');
+      pickedFile.paths.forEach((element) {
+        if (!listOfSelectedfiles.contains(element) &&
+            listOfSelectedfiles.length < 8) {
+          if (element!.contains('.mp4')) {
+            listOfSelectedfiles.add({'video': '$element'});
+          } else {
+            listOfSelectedfiles.add({'image': '$element'});
+          }
+        }
+      });
+    } catch (e) {}
+  }
+
+  selectLocation(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     showDialog(
@@ -71,7 +117,7 @@ class CreateEventController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      onImageButtonPressed(ImageSource.gallery, tag);
+                      onImageButtonPressed(ImageSource.camera, 'image');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -79,7 +125,7 @@ class CreateEventController extends GetxController {
                           borderRadius: BorderRadius.circular(5)),
                       padding: EdgeInsets.all(7),
                       child: Text(
-                        'Gallery',
+                        'Image',
                         style: TextStyle(
                             color: Colors.white,
                             fontFamily: AppFonts.segoeui,
@@ -93,7 +139,7 @@ class CreateEventController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      onImageButtonPressed(ImageSource.camera, tag);
+                      onImageButtonPressed(ImageSource.camera, 'video');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -101,7 +147,7 @@ class CreateEventController extends GetxController {
                           borderRadius: BorderRadius.circular(5)),
                       padding: EdgeInsets.all(7),
                       child: Text(
-                        'Camera',
+                        'Video',
                         style: TextStyle(
                             color: Colors.white,
                             fontFamily: AppFonts.segoeui,
@@ -119,6 +165,8 @@ class CreateEventController extends GetxController {
         });
   }
 
+  var listOfSelectedfiles = [].obs;
+  var listOfVidoeFilea = [].obs;
   var listOfImageFilea = [].obs;
-  var listOfSelectedImages = [].obs;
+
 }

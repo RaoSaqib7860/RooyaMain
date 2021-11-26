@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -14,15 +16,28 @@ class CreateRooyaPostController extends GetxController {
     final String data = await _channel.invokeMethod('getVideosPath');
     return data;
   }
-
+  static Future<String> get filePath async {
+    final String data = await _channel.invokeMethod('getFilesPath');
+    return data;
+  }
   static Future<String> get imagesPath async {
     final String data = await _channel.invokeMethod('getImagesPath');
     return data;
   }
 
+  getFilesPath() async {
+    String value = await filePath;
+    log('Files path = $value');
+    // List list = jsonDecode(value);
+    // list.forEach((element) {
+    //   List list2 = element['files'];
+    //   list2.forEach((element) {
+    //     listOfVidoeFilea.add({'video': '${element['path']}'});
+    //   });
+    // });
+  }
   getVideoPath() async {
     String value = await videoPath;
-    print('${value}');
     List list = jsonDecode(value);
     list.forEach((element) {
       List list2 = element['files'];
@@ -34,7 +49,6 @@ class CreateRooyaPostController extends GetxController {
 
   getImagePath() async {
     String value = await imagesPath;
-    print('${value}');
     List list = jsonDecode(value);
     list.forEach((element) {
       List list2 = element['files'];
@@ -50,7 +64,7 @@ class CreateRooyaPostController extends GetxController {
 
   onImageButtonPressed(ImageSource source, String tag) async {
     try {
-      final pickedFile;
+      PickedFile? pickedFile;
       if (tag == 'image') {
         pickedFile = await _picker.getImage(
           source: source,
@@ -63,16 +77,38 @@ class CreateRooyaPostController extends GetxController {
       print('pickedFile = ${pickedFile!.path}');
       if (!listOfSelectedfiles.contains(pickedFile.path) &&
           listOfSelectedfiles.length < 8) {
-        if (tag == 'image') {
-          listOfSelectedfiles.add({'image': '${pickedFile.path}'});
-        } else {
+        if (pickedFile.path.contains('.mp4')) {
           listOfSelectedfiles.add({'video': '${pickedFile.path}'});
+        } else {
+          listOfSelectedfiles.add({'image': '${pickedFile.path}'});
         }
       }
     } catch (e) {}
   }
 
-  selectLocation(BuildContext context, String tag) {
+  gallarypress() async {
+    try {
+      final FilePickerResult? pickedFile;
+      pickedFile = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4'],
+      );
+      print('pickedFile = ${pickedFile!.paths}');
+      pickedFile.paths.forEach((element) {
+        if (!listOfSelectedfiles.contains(element) &&
+            listOfSelectedfiles.length < 8) {
+          if (element!.contains('.mp4')) {
+            listOfSelectedfiles.add({'video': '$element'});
+          } else {
+            listOfSelectedfiles.add({'image': '$element'});
+          }
+        }
+      });
+    } catch (e) {}
+  }
+
+  selectLocation(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     showDialog(
@@ -94,11 +130,7 @@ class CreateRooyaPostController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      if (tag == 'camera') {
-                        onImageButtonPressed(ImageSource.camera, 'image');
-                      } else {
-                        onImageButtonPressed(ImageSource.gallery, 'image');
-                      }
+                      onImageButtonPressed(ImageSource.camera, 'image');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -120,11 +152,7 @@ class CreateRooyaPostController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      if (tag == 'camera') {
-                        onImageButtonPressed(ImageSource.camera, 'video');
-                      } else {
-                        onImageButtonPressed(ImageSource.gallery, 'video');
-                      }
+                      onImageButtonPressed(ImageSource.camera, 'video');
                     },
                     child: Container(
                       decoration: BoxDecoration(

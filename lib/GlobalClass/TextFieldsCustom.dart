@@ -14,7 +14,7 @@ class TextFieldsProfile extends StatefulWidget {
       this.isnumber = false,
       this.enable = true,
       this.isArabic = false,
-      this.width,
+      this.width ,
       this.sufixIcon,
       this.maxLines = 1})
       : super(key: key);

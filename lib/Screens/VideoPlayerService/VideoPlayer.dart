@@ -123,7 +123,7 @@ class _VideoAppState extends State<VideoApp> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset('${widget.assetsPath}')
+    _controller = VideoPlayerController.network('${widget.assetsPath}')
       ..setLooping(true)
       ..initialize().then((_) {
         _controller!.play();

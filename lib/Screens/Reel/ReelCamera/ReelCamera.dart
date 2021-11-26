@@ -1,12 +1,28 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
+import 'package:photofilters/filters/preset_filters.dart';
+import 'package:photofilters/widgets/photo_filter.dart';
 import 'package:rooya_app/GlobalClass/SpiKitGlobal.dart';
 import 'package:rooya_app/GlobalClass/TextFieldsCustom.dart';
+import 'package:image/image.dart' as imageLib;
+import 'package:rooya_app/dashboard/BottomSheet/BottomSheet.dart';
+import 'package:rooya_app/rooya_post/CreatePost/create_post.dart';
+import 'package:rooya_app/story/uploadStroy.dart';
+import 'package:rooya_app/utils/AppFonts.dart';
+import 'package:rooya_app/utils/ProgressHUD.dart';
+import 'package:rooya_app/utils/ShimmerEffect.dart';
+import 'package:rooya_app/utils/SizedConfig.dart';
+import 'package:rooya_app/utils/SnackbarCustom.dart';
 import 'package:rooya_app/utils/colors.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_trimmer/video_trimmer.dart';
@@ -14,7 +30,13 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../../main.dart';
 import 'ReelCameraController.dart';
 
+bool fromStrory = false;
+
 class CameraExampleHome extends StatefulWidget {
+  final bool? fromStroy;
+
+  const CameraExampleHome({Key? key, this.fromStroy}) : super(key: key);
+
   @override
   _CameraExampleHomeState createState() {
     return _CameraExampleHomeState();
@@ -75,7 +97,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   //timer
   Stopwatch watch = Stopwatch();
   Timer? timer;
-  bool startStop = true;
+  bool startStop = false;
 
   String elapsedTime = '';
 
@@ -112,6 +134,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     });
   }
 
+  bool onVideoMode = false;
+
   setTime() {
     var timeSoFar = watch.elapsedMilliseconds;
     setState(() {
@@ -138,6 +162,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   @override
   void initState() {
     super.initState();
+    fromStrory = widget.fromStroy!;
     ambiguate(WidgetsBinding.instance)?.addObserver(this);
 
     _flashModeControlRowAnimationController = AnimationController(
@@ -172,6 +197,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     ambiguate(WidgetsBinding.instance)?.removeObserver(this);
     _flashModeControlRowAnimationController.dispose();
     _exposureModeControlRowAnimationController.dispose();
+    controller!.dispose();
+    watch.stop();
     super.dispose();
   }
 
@@ -221,7 +248,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                             InkWell(
                               child: Icon(
                                 Icons.arrow_back_ios_rounded,
-                                size: 15,
+                                size: 20,
                                 color: Colors.white,
                               ),
                               onTap: () {
@@ -251,30 +278,30 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                                 size: 20,
                               ),
                             ),
-                            SizedBox(
-                              width: 15,
-                            ),
-                            Icon(
-                              Icons.settings,
-                              size: 20,
-                              color: Colors.white,
-                            ),
+                            // SizedBox(
+                            //   width: 15,
+                            // ),
+                            // Icon(
+                            //   Icons.settings,
+                            //   size: 20,
+                            //   color: Colors.white,
+                            // ),
                           ],
                         ),
-                        Container(
-                          height: height * 0.040,
-                          width: width * 0.2,
-                          child: Center(
-                            child: Text(
-                              'Preview',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                          decoration: BoxDecoration(
-                              color: greenColor,
-                              borderRadius: BorderRadius.circular(30)),
-                        )
+                        // Container(
+                        //   height: height * 0.040,
+                        //   width: width * 0.2,
+                        //   child: Center(
+                        //     child: Text(
+                        //       'Preview',
+                        //       style:
+                        //           TextStyle(color: Colors.white, fontSize: 12),
+                        //     ),
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //       color: greenColor,
+                        //       borderRadius: BorderRadius.circular(30)),
+                        // )
                       ],
                     ),
                   ),
@@ -322,7 +349,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                     ),
                   ),
                   Container(
-                    height: height * 0.120,
+                    height: height * 0.150,
                     width: width,
                     padding: EdgeInsets.symmetric(horizontal: width * 0.030),
                     child: Row(
@@ -334,54 +361,139 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                             'assets/svg/gallary.svg',
                           ),
                           onTap: () async {
-                            String path =
-                                await reelcontroller.onImageButtonPressed();
-                            ambiguate(WidgetsBinding.instance)
-                                ?.removeObserver(this);
-                            _flashModeControlRowAnimationController.dispose();
-                            _exposureModeControlRowAnimationController
-                                .dispose();
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (c) => VideoAppFile(
-                                          filePath: path,
-                                          spinSize: 50,
-                                        )));
+                            try {
+                              final FilePickerResult? pickedFile;
+                              pickedFile = await FilePicker.platform.pickFiles(
+                                type: FileType.custom,
+                                allowMultiple: false,
+                                allowedExtensions: [
+                                  'jpg',
+                                  'jpeg',
+                                  'png',
+                                  'mp4'
+                                ],
+                              );
+                              print('pickedFile = ${pickedFile!.paths}');
+                              ambiguate(WidgetsBinding.instance)
+                                  ?.removeObserver(this);
+                              _flashModeControlRowAnimationController.dispose();
+                              _exposureModeControlRowAnimationController
+                                  .dispose();
+                              String path = '${pickedFile.paths[0]}';
+                              print('path of video is = $path');
+                              if (path.contains('mp4')) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => VideoAppFile(
+                                              filePath: path,
+                                              spinSize: 50,
+                                            )));
+                              } else {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => EditImage(
+                                              path: path,
+                                            ))).then((value) {
+                                  Get.back();
+                                });
+                              }
+                            } catch (e) {}
                           },
                         ),
                         InkWell(
-                          onTap: controller != null &&
-                                  controller!.value.isInitialized &&
-                                  !controller!.value.isRecordingVideo
-                              ? onVideoRecordButtonPressed
-                              : doneVideo,
-                          child: Container(
-                            height: height * 0.090,
-                            width: width * 0.180,
-                            child: !isrecordingStart
-                                ? Padding(
-                                    padding: EdgeInsets.all(10.0),
-                                    child: SvgPicture.asset(
-                                        'assets/svg/VideoIcon.svg'),
-                                  )
-                                : Container(
-                                    height: double.infinity,
-                                    width: double.infinity,
-                                    child: Center(
-                                      child: Text(
-                                        '$elapsedTime',
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 12),
-                                      ),
-                                    ),
-                                    decoration: BoxDecoration(
+                          onTap: () {
+                            if (!controller!.value.isRecordingVideo) {
+                              ambiguate(WidgetsBinding.instance)
+                                  ?.removeObserver(this);
+                              _flashModeControlRowAnimationController.dispose();
+                              _exposureModeControlRowAnimationController
+                                  .dispose();
+                              onTakePictureButtonPressed(context);
+                            } else {
+                              doneVideo(context);
+                            }
+                          },
+                          onLongPress: () {
+                            onVideoMode = true;
+                            setState(() {});
+                            controller != null &&
+                                    controller!.value.isInitialized &&
+                                    !controller!.value.isRecordingVideo
+                                ? onVideoRecordButtonPressed()
+                                : doneVideo(context);
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              onVideoMode
+                                  ? Container(
+                                      height: height * 0.090,
+                                      width: width * 0.180,
+                                      child: !isrecordingStart
+                                          ? Padding(
+                                              padding: EdgeInsets.all(10.0),
+                                              child: SvgPicture.asset(
+                                                  'assets/svg/VideoIcon.svg'),
+                                            )
+                                          : Container(
+                                              height: double.infinity,
+                                              width: double.infinity,
+                                              child: Center(
+                                                child: Text(
+                                                  '$elapsedTime',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12),
+                                                ),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  color: greenColor,
+                                                  shape: BoxShape.circle),
+                                            ),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle),
+                                    )
+                                  : Container(
+                                      height: height * 0.090,
+                                      width: width * 0.180,
+                                      child: Icon(
+                                        Icons.camera_enhance_sharp,
                                         color: greenColor,
-                                        shape: BoxShape.circle),
-                                  ),
-                            padding: EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                                color: Colors.white, shape: BoxShape.circle),
+                                        size: 40,
+                                      ),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle),
+                                    ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    if (onVideoMode) {
+                                      onVideoMode = false;
+                                    } else {
+                                      onVideoMode = true;
+                                    }
+                                  });
+                                },
+                                child: Text(
+                                  !onVideoMode
+                                      ? 'Long press to create video'
+                                      : '',
+                                  style: TextStyle(
+                                      fontFamily: AppFonts.segoeui,
+                                      fontSize: 12,
+                                      color: Colors.white),
+                                ),
+                              )
+                            ],
                           ),
                         ),
                         InkWell(
@@ -418,31 +530,31 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                 ],
               ),
             ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                height: height * 0.380,
-                width: width * 0.130,
-                padding: EdgeInsets.symmetric(vertical: height * 0.030),
-                child: Column(
-                  children: [
-                    SvgPicture.asset('assets/svg/sound.svg'),
-                    SvgPicture.asset('assets/svg/speed.svg'),
-                    SvgPicture.asset('assets/svg/speedX.svg'),
-                    SvgPicture.asset('assets/svg/filter.svg'),
-                    SvgPicture.asset('assets/svg/magic.svg'),
-                    SvgPicture.asset('assets/svg/time.svg'),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                ),
-                margin: EdgeInsets.only(
-                    bottom: height * 0.150, right: width * 0.030),
-                decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(30)),
-              ),
-            )
+            // Align(
+            //   alignment: Alignment.bottomRight,
+            //   child: Container(
+            //     height: height * 0.380,
+            //     width: width * 0.130,
+            //     padding: EdgeInsets.symmetric(vertical: height * 0.030),
+            //     child: Column(
+            //       children: [
+            //         SvgPicture.asset('assets/svg/sound.svg'),
+            //         SvgPicture.asset('assets/svg/speed.svg'),
+            //         SvgPicture.asset('assets/svg/speedX.svg'),
+            //         SvgPicture.asset('assets/svg/filter.svg'),
+            //         SvgPicture.asset('assets/svg/magic.svg'),
+            //         SvgPicture.asset('assets/svg/time.svg'),
+            //       ],
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       crossAxisAlignment: CrossAxisAlignment.center,
+            //     ),
+            //     margin: EdgeInsets.only(
+            //         bottom: height * 0.150, right: width * 0.030),
+            //     decoration: BoxDecoration(
+            //         color: Colors.black.withOpacity(0.5),
+            //         borderRadius: BorderRadius.circular(30)),
+            //   ),
+            // )
           ],
         ),
       ),
@@ -763,66 +875,6 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   }
 
   /// Display the control bar with buttons to take pictures and record videos.
-  Widget _captureControlRowWidget() {
-    final CameraController? cameraController = controller;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.camera_alt),
-          color: Colors.blue,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  !cameraController.value.isRecordingVideo
-              ? onTakePictureButtonPressed
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.videocam),
-          color: Colors.blue,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  !cameraController.value.isRecordingVideo
-              ? onVideoRecordButtonPressed
-              : null,
-        ),
-        IconButton(
-          icon: cameraController != null &&
-                  cameraController.value.isRecordingPaused
-              ? Icon(Icons.play_arrow)
-              : Icon(Icons.pause),
-          color: Colors.blue,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  cameraController.value.isRecordingVideo
-              ? (cameraController.value.isRecordingPaused)
-                  ? onResumeButtonPressed
-                  : onPauseButtonPressed
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.stop),
-          color: Colors.red,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  cameraController.value.isRecordingVideo
-              ? onStopButtonPressed
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.pause_presentation),
-          color:
-              cameraController != null && cameraController.value.isPreviewPaused
-                  ? Colors.red
-                  : Colors.blue,
-          onPressed:
-              cameraController == null ? null : onPausePreviewButtonPressed,
-        ),
-      ],
-    );
-  }
 
   /// Display a row of toggle to select the camera (or a message if no camera is available).
   Widget _cameraTogglesRowWidget() {
@@ -984,7 +1036,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  void onTakePictureButtonPressed() {
+  void onTakePictureButtonPressed(BuildContext context) {
     takePicture().then((XFile? file) {
       if (mounted) {
         setState(() {
@@ -992,7 +1044,15 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           videoController?.dispose();
           videoController = null;
         });
-        if (file != null) showInSnackBar('Picture saved to ${file.path}');
+        // if (file != null) showInSnackBar('Picture saved to ${file.path}');
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (c) => EditImage(
+                      path: file!.path,
+                    ))).then((value) {
+          Get.back();
+        });
       }
     });
   }
@@ -1072,17 +1132,17 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  void doneVideo() {
+  void doneVideo(BuildContext context) {
     stopWatch();
-    onStopButtonPressed();
+    onStopButtonPressed(context);
   }
 
-  void onStopButtonPressed() {
+  void onStopButtonPressed(BuildContext context) {
     stopVideoRecording().then((file) {
       if (mounted) setState(() {});
       if (file != null) {
         videoFile = file;
-        _startVideoPlayer();
+        _startVideoPlayer(context);
       }
     });
   }
@@ -1239,7 +1299,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  Future<void> _startVideoPlayer() async {
+  Future<void> _startVideoPlayer(BuildContext context) async {
     if (videoFile == null) {
       return;
     }
@@ -1283,17 +1343,268 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
 }
 
 class CameraApp extends StatelessWidget {
+  final bool? fromStory;
+
+  const CameraApp({Key? key, this.fromStory = false}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return CameraExampleHome();
+    return CameraExampleHome(
+      fromStroy: fromStory,
+    );
+  }
+}
+
+Future<String> cropImage(String path) async {
+  File? croppedFile = await ImageCropper.cropImage(
+      sourcePath: path,
+      aspectRatioPresets: Platform.isAndroid
+          ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+          : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+      androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Cropper',
+          toolbarColor: Colors.deepOrange,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false),
+      iosUiSettings: IOSUiSettings(
+        title: 'Cropper',
+      ));
+  if (croppedFile != null) {
+    // Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //         builder: (c) => VideoAppFile(
+    //               filePath: croppedFile.path,
+    //               spinSize: 50,
+    //               isimage: true,
+    //             )));
+    return croppedFile.path;
+  } else {
+    return '';
+  }
+}
+
+Future<String> filterImage(context, String path) async {
+  File imageFile;
+  String fileName;
+  imageFile = new File(path);
+  fileName = basename(imageFile.path);
+  var image = imageLib.decodeImage(await imageFile.readAsBytes());
+  image = imageLib.copyResize(image!, width: 600);
+  Map imagefile = await Navigator.push(
+    context,
+    new MaterialPageRoute(
+      builder: (context) => new PhotoFilterSelector(
+        title: Text("Rooya Editor"),
+        image: image!,
+        filters: presetFiltersList,
+        filename: fileName,
+        loader: Center(
+            child: ShimerEffect(
+          child: Container(
+            color: Colors.blueGrey,
+          ),
+        )),
+        fit: BoxFit.contain,
+      ),
+    ),
+  );
+  print('imageFile path is = ${imageFile.path}');
+  if (imagefile != null && imagefile.containsKey('image_filtered')) {
+    imageFile = imagefile['image_filtered'];
+    return imageFile.path;
+  } else {
+    return '';
+  }
+}
+
+class EditImage extends StatefulWidget {
+  final String? path;
+
+  const EditImage({Key? key, this.path}) : super(key: key);
+
+  @override
+  _EditImageState createState() => _EditImageState();
+}
+
+class _EditImageState extends State<EditImage> {
+  String path = '';
+
+  @override
+  void initState() {
+    path = widget.path!;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (c) => VideoAppFile(
+                          filePath: path,
+                          spinSize: 50,
+                          isimage: true,
+                        )));
+          },
+          backgroundColor: primaryColor,
+          child: Icon(
+            CupertinoIcons.forward,
+            color: Colors.white,
+          ),
+        ),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'Edit Image',
+            style: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontFamily: AppFonts.segoeui),
+          ),
+          leading: IconButton(
+              onPressed: () {
+                Get.back();
+              },
+              icon: Icon(Icons.arrow_back, color: Colors.black)),
+        ),
+        body: Column(
+          children: [
+            SizedBox(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.030),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        String value = await cropImage(path);
+                        if (value != '') {
+                          setState(() {
+                            path = value;
+                          });
+                        }
+                      },
+                      child: Container(
+                        child: Row(
+                          children: [
+                            Text(
+                              'Cropping',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontFamily: AppFonts.segoeui),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.crop,
+                              color: Colors.white,
+                            )
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.center,
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(
+                            color: primaryColor,
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  offset: Offset(3, 3),
+                                  blurRadius: 5)
+                            ],
+                            borderRadius: BorderRadius.circular(5)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        String value = await filterImage(context, path);
+                        print('filter path is = $value');
+                        if (value != '') {
+                          setState(() {
+                            path = value;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  offset: Offset(3, 3),
+                                  blurRadius: 5)
+                            ],
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(5)),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Filters',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontFamily: AppFonts.segoeui),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(
+                              Icons.api,
+                              color: Colors.white,
+                            )
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: Image.file(File(path)))
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class VideoAppFile extends StatefulWidget {
   final double? spinSize;
   final String? filePath;
+  final bool? isimage;
 
-  const VideoAppFile({Key? key, this.spinSize = 40.0, this.filePath})
+  const VideoAppFile(
+      {Key? key, this.spinSize = 40.0, this.filePath, this.isimage = false})
       : super(key: key);
 
   @override
@@ -1306,21 +1617,23 @@ class _VideoAppFileState extends State<VideoAppFile> {
 
   @override
   void initState() {
-    print('video path is = ${widget.filePath}');
-    super.initState();
-    _controller = VideoPlayerController.file(File('${widget.filePath}'))
-      ..setLooping(true)
-      ..initialize().then((_) {
-        _controller!.play();
-        setState(() {
-          initialize = true;
+    if (!widget.isimage!) {
+      print('video path is = ${widget.filePath}');
+      super.initState();
+      _controller = VideoPlayerController.file(File('${widget.filePath}'))
+        ..setLooping(true)
+        ..initialize().then((_) {
+          _controller!.play();
+          setState(() {
+            initialize = true;
+          });
         });
+      streamController.stream.listen((event) {
+        if (event == 10.0) {
+          _controller!.pause();
+        }
       });
-    streamController.stream.listen((event) {
-      if (event == 10.0) {
-        _controller!.pause();
-      }
-    });
+    }
   }
 
   @override
@@ -1330,7 +1643,9 @@ class _VideoAppFileState extends State<VideoAppFile> {
 
   @override
   void dispose() {
-    _controller!.dispose();
+    if (!widget.isimage!) {
+      _controller!.dispose();
+    }
     super.dispose();
   }
 
@@ -1351,13 +1666,15 @@ class _VideoAppFileState extends State<VideoAppFile> {
       child: VisibilityDetector(
         key: Key('my-widget-key'),
         onVisibilityChanged: (visibilityInfo) {
-          var visiblePercentage = visibilityInfo.visibleFraction * 100;
-          debugPrint(
-              'onVisibilityChanged ${visibilityInfo.key} is ${visiblePercentage}% visible');
-          if (visiblePercentage == 0.0) {
-            setState(() {
-              _controller!.pause();
-            });
+          if (!widget.isimage!) {
+            var visiblePercentage = visibilityInfo.visibleFraction * 100;
+            debugPrint(
+                'onVisibilityChanged ${visibilityInfo.key} is ${visiblePercentage}% visible');
+            if (visiblePercentage == 0.0) {
+              setState(() {
+                _controller!.pause();
+              });
+            }
           }
         },
         child: Scaffold(
@@ -1375,7 +1692,24 @@ class _VideoAppFileState extends State<VideoAppFile> {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
-              Get.to(TrimmerView(File('${widget.filePath}')));
+              if (fromStrory) {
+                newPathis = '';
+                if (!widget.isimage!) {
+                  Get.to(TrimmerViewforVideo(
+                    file: File('${widget.filePath}'),
+                    isImage: widget.isimage,
+                  ));
+                } else {
+                  Get.to(TrimmerView(
+                    file: File('${widget.filePath}'),
+                    isImage: widget.isimage,
+                  ));
+                }
+              } else {
+                newPathis = '${widget.filePath}';
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
             },
             backgroundColor: greenColor,
             child: Center(
@@ -1388,44 +1722,48 @@ class _VideoAppFileState extends State<VideoAppFile> {
           ),
           body: Stack(
             children: [
-              Center(
-                child: _controller!.value.isInitialized
-                    ? InkWell(
-                        onTap: () {
-                          setState(() {
-                            _controller!.value.isPlaying
-                                ? _controller!.pause()
-                                : _controller!.play();
-                          });
-                        },
-                        child: AspectRatio(
-                          aspectRatio: _controller!.value.aspectRatio,
-                          child: VideoPlayer(_controller!),
-                        ),
-                      )
-                    : Container(
-                        child: spinKitGlobal(size: widget.spinSize),
-                        decoration: BoxDecoration(color: Colors.black),
-                      ),
-              ),
-              _controller!.value.isPlaying
-                  ? SizedBox()
-                  : !initialize!
-                      ? SizedBox()
-                      : InkWell(
-                          onTap: () {
-                            setState(() {
-                              _controller!.play();
-                            });
-                          },
-                          child: Center(
-                            child: Icon(
-                              Icons.play_arrow,
-                              size: 60,
-                              color: Colors.white,
+              !widget.isimage!
+                  ? Center(
+                      child: _controller!.value.isInitialized
+                          ? InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _controller!.value.isPlaying
+                                      ? _controller!.pause()
+                                      : _controller!.play();
+                                });
+                              },
+                              child: AspectRatio(
+                                aspectRatio: _controller!.value.aspectRatio,
+                                child: VideoPlayer(_controller!),
+                              ),
+                            )
+                          : Container(
+                              child: spinKitGlobal(size: widget.spinSize),
+                              decoration: BoxDecoration(color: Colors.black),
                             ),
-                          ),
-                        )
+                    )
+                  : Center(child: Image.file(File(widget.filePath!))),
+              !widget.isimage!
+                  ? _controller!.value.isPlaying
+                      ? SizedBox()
+                      : !initialize!
+                          ? SizedBox()
+                          : InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _controller!.play();
+                                });
+                              },
+                              child: Center(
+                                child: Icon(
+                                  Icons.play_arrow,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                  : SizedBox()
             ],
           ),
         ),
@@ -1436,18 +1774,124 @@ class _VideoAppFileState extends State<VideoAppFile> {
 
 class TrimmerView extends StatefulWidget {
   final File? file;
+  final bool? isImage;
 
-  TrimmerView(this.file);
+  TrimmerView({this.file, this.isImage});
 
   @override
   _TrimmerViewState createState() => _TrimmerViewState();
 }
 
 class _TrimmerViewState extends State<TrimmerView> {
+  TextEditingController controller = TextEditingController();
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ProgressHUD(
+      inAsyncCall: isLoading,
+      opacity: 0.5,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            setState(() {
+              isLoading = true;
+            });
+            List listofurl = [];
+            String value = await createStory(widget.file!.path);
+            listofurl.add(value);
+            print('listofurl= $listofurl');
+            await uploadStoryData(text: controller.text, listOfUrl: listofurl);
+            setState(() {
+              isLoading = false;
+            });
+            snackBarSuccess('Story post successfully');
+            Future.delayed(Duration(seconds: 2), () {
+              Get.offAll(() => BottomSheetCustom());
+            });
+          },
+          backgroundColor: greenColor,
+          child: Center(
+            child: Text(
+              'Post',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        body: Builder(
+          builder: (context) => Center(
+            child: Container(
+              width: Get.width,
+              height: Get.height,
+              padding: EdgeInsets.symmetric(horizontal: Get.width * 0.030),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                      height: Get.height * 0.010,
+                    ),
+                    TextFieldsProfile(
+                      controller: controller,
+                      hint: 'Write your comment'.tr,
+                      uperhint: 'Write your comment'.tr,
+                      width: Get.width,
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.030,
+                    ),
+                    Container(
+                      child: Image.file(
+                        widget.file!,
+                        fit: BoxFit.cover,
+                      ),
+                      height: Get.height * 0.5,
+                      width: Get.width,
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.050,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TrimmerViewforVideo extends StatefulWidget {
+  final File? file;
+  final bool? isImage;
+
+  TrimmerViewforVideo({this.file, this.isImage});
+
+  @override
+  _TrimmerViewforVideoState createState() => _TrimmerViewforVideoState();
+}
+
+class _TrimmerViewforVideoState extends State<TrimmerViewforVideo> {
   final Trimmer _trimmer = Trimmer();
 
   double _startValue = 0.0;
-  double _endValue = 0.1;
+  double _endValue = 0.0;
 
   bool _isPlaying = false;
   bool _progressVisibility = false;
@@ -1478,144 +1922,154 @@ class _TrimmerViewState extends State<TrimmerView> {
   @override
   void initState() {
     super.initState();
-
     _loadVideo();
   }
 
+  TextEditingController controller = TextEditingController();
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return ProgressHUD(
+      inAsyncCall: isLoading,
+      opacity: 0.5,
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_rounded,
-            color: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            _saveVideo().then((outputPath) async {
+              setState(() {
+                isLoading = true;
+              });
+              List listofurl = [];
+              String value = await createStory(outputPath!);
+              listofurl.add(value);
+              print('listofurl= $listofurl');
+              await uploadStoryData(
+                  text: controller.text, listOfUrl: listofurl);
+              setState(() {
+                isLoading = false;
+              });
+              snackBarSuccess('Story post successfully');
+              Future.delayed(Duration(seconds: 2), () {
+                Get.offAll(() => BottomSheetCustom());
+              });
+            });
           },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // _saveVideo().then((outputPath) {
-          //   print('OUTPUT PATH: $outputPath');
-          //   final snackBar =
-          //       SnackBar(content: Text('Video Saved successfully'));
-          //   ScaffoldMessenger.of(context).showSnackBar(
-          //     snackBar,
-          //   );
-          // });
-        },
-        backgroundColor: greenColor,
-        child: Center(
-          child: Text(
-            'Save',
-            style: TextStyle(color: Colors.white),
+          backgroundColor: greenColor,
+          child: Center(
+            child: Text(
+              'Post',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ),
-      ),
-      body: Builder(
-        builder: (context) => Container(
-          width: Get.width,
-          height: Get.height,
-          padding: EdgeInsets.symmetric(horizontal: Get.width * 0.030),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Visibility(
-                  visible: _progressVisibility,
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.red,
-                  ),
+        body: Builder(
+          builder: (context) => Center(
+            child: Container(
+              width: Get.width,
+              height: Get.height,
+              padding: EdgeInsets.symmetric(horizontal: Get.width * 0.030),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Visibility(
+                      visible: _progressVisibility,
+                      child: LinearProgressIndicator(
+                        backgroundColor: primaryColor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.010,
+                    ),
+                    TextFieldsProfile(
+                      controller: controller,
+                      hint: 'Write your comment'.tr,
+                      uperhint: 'Write your comment'.tr,
+                      width: Get.width,
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.030,
+                    ),
+                    Container(
+                      height: Get.height * 0.5,
+                      width: Get.width,
+                      child: VideoViewer(trimmer: _trimmer),
+                    ),
+                    Center(
+                      child: TrimEditor(
+                        trimmer: _trimmer,
+                        viewerHeight: 50.0,
+                        circlePaintColor: greenColor,
+                        scrubberPaintColor: greenColor,
+                        borderPaintColor: greenColor,
+                        viewerWidth: MediaQuery.of(context).size.width -
+                            Get.width * 0.030,
+                        maxVideoLength: Duration(seconds: 10),
+                        onChangeStart: (value) {
+                          _startValue = value;
+                        },
+                        onChangeEnd: (value) {
+                          _endValue = value;
+                        },
+                        onChangePlaybackState: (value) {
+                          setState(() {
+                            _isPlaying = value;
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.030,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: greenColor, shape: BoxShape.circle),
+                      child: TextButton(
+                        child: _isPlaying
+                            ? Icon(
+                                Icons.pause,
+                                size: 40.0,
+                                color: Colors.white,
+                              )
+                            : Icon(
+                                Icons.play_arrow,
+                                size: 40.0,
+                                color: Colors.white,
+                              ),
+                        onPressed: () async {
+                          bool playbackState =
+                              await _trimmer.videPlaybackControl(
+                            startValue: _startValue,
+                            endValue: _endValue,
+                          );
+                          setState(() {
+                            _isPlaying = playbackState;
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.050,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: Get.height * 0.010,
-                ),
-                TextFieldsProfile(
-                  // controller: _provider.lNameCont,
-                  hint: 'Write your comment'.tr,
-                  uperhint: 'Write your comment'.tr,
-                  width: Get.width,
-                ),
-                SizedBox(
-                  height: Get.height * 0.010,
-                ),
-                TextFieldsProfile(
-                  // controller: _provider.lNameCont,
-                  hint: '#Name'.tr,
-                  uperhint: 'Tag Someone'.tr,
-                  width: Get.width,
-                ),
-                SizedBox(
-                  height: Get.height * 0.030,
-                ),
-                Container(
-                  height: Get.height * 0.5,
-                  width: Get.width,
-                  child: VideoViewer(trimmer: _trimmer),
-                ),
-                Center(
-                  child: TrimEditor(
-                    trimmer: _trimmer,
-                    viewerHeight: 50.0,
-                    circlePaintColor: greenColor,
-                    scrubberPaintColor: greenColor,
-                    borderPaintColor: greenColor,
-                    viewerWidth: MediaQuery.of(context).size.width,
-                    // maxVideoLength: Duration(seconds: 10),
-                    onChangeStart: (value) {
-                      _startValue = value;
-                    },
-                    onChangeEnd: (value) {
-                      _endValue = value;
-                    },
-                    onChangePlaybackState: (value) {
-                      setState(() {
-                        _isPlaying = value;
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: Get.height * 0.030,
-                ),
-                Container(
-                  decoration:
-                      BoxDecoration(color: greenColor, shape: BoxShape.circle),
-                  child: TextButton(
-                    child: _isPlaying
-                        ? Icon(
-                            Icons.pause,
-                            size: 40.0,
-                            color: Colors.white,
-                          )
-                        : Icon(
-                            Icons.play_arrow,
-                            size: 40.0,
-                            color: Colors.white,
-                          ),
-                    onPressed: () async {
-                      bool playbackState = await _trimmer.videPlaybackControl(
-                        startValue: _startValue,
-                        endValue: _endValue,
-                      );
-                      setState(() {
-                        _isPlaying = playbackState;
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: Get.height * 0.050,
-                ),
-              ],
+              ),
             ),
           ),
         ),

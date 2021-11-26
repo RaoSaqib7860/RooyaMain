@@ -439,28 +439,28 @@ class _CreateStoryState extends State<CreateStory> {
                         Center(
                           child: InkWell(
                             onTap: () async {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              List listofurl = [];
-                              if (widget.from == 'image') {
-                                for (var i in controller.listOfSelectedImages) {
-                                  String value = await createStory(i);
-                                  listofurl.add(value);
-                                }
-                              } else {
-                                for (var i in controller.listOfSelectedVideos) {
-                                  String value = await createStory(i);
-                                  listofurl.add(value);
-                                }
-                              }
-                              print('listofurl= $listofurl');
-                              await uploadStoryData(
-                                  controller: controller, listOfUrl: listofurl);
-                              setState(() {
-                                isLoading = true;
-                              });
-                              Get.back();
+                              // setState(() {
+                              //   isLoading = true;
+                              // });
+                              // List listofurl = [];
+                              // if (widget.from == 'image') {
+                              //   for (var i in controller.listOfSelectedImages) {
+                              //     String value = await createStory(i);
+                              //     listofurl.add(value);
+                              //   }
+                              // } else {
+                              //   for (var i in controller.listOfSelectedVideos) {
+                              //     String value = await createStory(i);
+                              //     listofurl.add(value);
+                              //   }
+                              // }
+                              // print('listofurl= $listofurl');
+                              // await uploadStoryData(
+                              //     controller: controller, listOfUrl: listofurl);
+                              // setState(() {
+                              //   isLoading = true;
+                              // });
+                              // Get.back();
                             },
                             child: Container(
                               decoration: BoxDecoration(

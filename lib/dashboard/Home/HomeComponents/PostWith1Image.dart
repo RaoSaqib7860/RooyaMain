@@ -22,6 +22,7 @@ class _PostWith1ImageState extends State<PostWith1Image> {
             imageUrl:
                 "$baseImageUrl${widget.rooyaPostModel!.attachment![0].attachment}",
             width: double.infinity,
+            fit: BoxFit.cover,
             placeholder: (context, url) => ShimerEffect(
               child: Container(
                 height: 30.0.h,

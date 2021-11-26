@@ -15,6 +15,7 @@ class PasswordChanged extends StatefulWidget {
 class _PasswordChangedState extends State<PasswordChanged> {
   @override
   Widget build(BuildContext context) {
+
     return WillPopScope(
       onWillPop: () async {
         Get.offAll(() => SignInTabsHandle());

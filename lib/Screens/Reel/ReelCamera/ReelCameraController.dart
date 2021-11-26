@@ -9,11 +9,18 @@ class ReelCameraController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<String> onImageButtonPressed() async {
+  Future<String> onImageButtonPressed({String? from}) async {
+    final pickedFile;
     try {
-      final pickedFile = await _picker.getVideo(
-        source: ImageSource.gallery,
-      );
+      if (from == 'image') {
+        pickedFile = await _picker.getImage(
+          source: ImageSource.gallery,
+        );
+      } else {
+        pickedFile = await _picker.getVideo(
+          source: ImageSource.gallery,
+        );
+      }
       return pickedFile!.path;
     } catch (e) {}
     return '';

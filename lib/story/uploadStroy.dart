@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:rooya_app/ApiUtils/AuthUtils.dart';
 import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/dashboard/Home/Models/RooyaPostModel.dart';
+import 'package:rooya_app/dashboard/Home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'CreateStoryController.dart';
 
 Future<String> createStory(String path) async {
@@ -34,22 +34,36 @@ Future<String> createStory(String path) async {
 }
 
 Future uploadStoryData(
-    {CreateStoryController? controller, List? listOfUrl}) async {
+    {String? text, List? listOfUrl, String? eventID = '0'}) async {
   print('call story');
   print('token is =  ${await getToken()}');
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? userId = prefs.getString('user_id');
   print('userId is = $userId');
-  final response = await http.post(Uri.parse('${baseUrl}addStory$code'),
+  var dt = DateTime.now();
+  final response = await http.post(
+      Uri.parse(
+          '$baseUrl${fromHomeStory == '0' ? 'addStory' : 'addStoryEvent'}$code'),
       headers: {
         "Content-Type": "application/json",
         "Authorization": '${await getToken()}'
       },
-      body: jsonEncode({
-        "user_id": int.parse(userId!),
-        "text": controller!.storyController.text,
-        'files': listOfUrl
-      }));
+      body: fromHomeStory == '0'
+          ? jsonEncode({
+              "user_id": int.parse(userId!),
+              "text": text,
+              'files': listOfUrl,
+              'time':
+                  '${dt.year}-${dt.month}-${dt.day} ${dt.hour}:${dt.minute}:${dt.second}'
+            })
+          : jsonEncode({
+              "user_id": int.parse(userId!),
+              "text": text,
+              'files': listOfUrl,
+              'event_id': fromHomeStory,
+              'time':
+                  '${dt.year}-${dt.month}-${dt.day} ${dt.hour}:${dt.minute}:${dt.second}'
+            }));
   var data = jsonDecode(response.body);
   print('addStory =$data');
   if (data['result'] == 'success') {

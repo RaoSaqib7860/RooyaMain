@@ -4,8 +4,9 @@ class UserStoryModel {
   String? userFirstname;
   String? userLastname;
   String? userPicture;
+  int? eventId;
   int? lastUpdated;
-  List<Items>? items;
+  List<Items>? items=[];
 
   UserStoryModel(
       {this.id,
@@ -13,18 +14,20 @@ class UserStoryModel {
         this.userFirstname,
         this.userLastname,
         this.userPicture,
+        this.eventId,
         this.lastUpdated,
         this.items});
 
-  UserStoryModel.fromJson(Map<String, dynamic> json) {
+  UserStoryModel.fromJson(Map<String, dynamic> json,bool add) {
     id = json['id'];
     userId = json['user_id'];
     userFirstname = json['user_firstname'];
     userLastname = json['user_lastname'];
     userPicture = json['user_picture'];
+    eventId = json['event_id'];
     lastUpdated = json['lastUpdated'];
-    if (json['items'] != null) {
-      items =  <Items>[];
+    if (json['items'] != null && add) {
+      items = <Items>[];
       json['items'].forEach((v) {
         items!.add(new Items.fromJson(v));
       });
@@ -38,6 +41,7 @@ class UserStoryModel {
     data['user_firstname'] = this.userFirstname;
     data['user_lastname'] = this.userLastname;
     data['user_picture'] = this.userPicture;
+    data['event_id'] = this.eventId;
     data['lastUpdated'] = this.lastUpdated;
     if (this.items != null) {
       data['items'] = this.items!.map((v) => v.toJson()).toList();

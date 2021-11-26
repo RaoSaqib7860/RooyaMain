@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -50,7 +51,25 @@ class RooyaSouqController extends GetxController {
     } catch (e) {}
   }
 
-  selectLocation(BuildContext context, String tag) {
+  gallarypress() async {
+    try {
+      final FilePickerResult? pickedFile;
+      pickedFile = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+      );
+      print('pickedFile = ${pickedFile!.paths}');
+      pickedFile.paths.forEach((element) {
+        if (!listOfSelectedImages.contains(element) &&
+            listOfSelectedImages.length < 8) {
+          listOfSelectedImages.add('$element');
+        }
+      });
+    } catch (e) {}
+  }
+
+  selectLocation(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     showDialog(
@@ -72,7 +91,7 @@ class RooyaSouqController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      onImageButtonPressed(ImageSource.gallery, tag);
+                      onImageButtonPressed(ImageSource.camera, 'video');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -80,7 +99,7 @@ class RooyaSouqController extends GetxController {
                           borderRadius: BorderRadius.circular(5)),
                       padding: EdgeInsets.all(7),
                       child: Text(
-                        'Gallery',
+                        'video',
                         style: TextStyle(
                             color: Colors.white,
                             fontFamily: AppFonts.segoeui,
@@ -94,7 +113,7 @@ class RooyaSouqController extends GetxController {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      onImageButtonPressed(ImageSource.camera, tag);
+                      onImageButtonPressed(ImageSource.camera, 'image');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -102,7 +121,7 @@ class RooyaSouqController extends GetxController {
                           borderRadius: BorderRadius.circular(5)),
                       padding: EdgeInsets.all(7),
                       child: Text(
-                        'Camera',
+                        'image',
                         style: TextStyle(
                             color: Colors.white,
                             fontFamily: AppFonts.segoeui,

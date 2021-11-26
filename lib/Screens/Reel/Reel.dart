@@ -51,7 +51,8 @@ class _ReelPageState extends State<ReelPage> {
                   height: height,
                   width: width,
                   child: VideoApp(
-                    assetsPath: '$basePath' + 'v${i + 1}' + '.mp4',
+                    assetsPath:
+                        'https://play.rooya.com/upload/videos/appvids/Snaptik_6770615490269187334_kuczynskamaja.mp4',
                   ),
                   decoration: BoxDecoration(color: Colors.black),
                 ),
@@ -170,7 +171,7 @@ class _ReelPageState extends State<ReelPage> {
                               ),
                               InkWell(
                                 onTap: () {
-                                 Get.to(CameraApp());
+                                  //  Get.to(CameraApp());
                                 },
                                 child: Container(
                                   child: Icon(

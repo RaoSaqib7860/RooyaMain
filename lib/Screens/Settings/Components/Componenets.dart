@@ -88,7 +88,12 @@ Widget seetingRowWithOutIcon(
   );
 }
 
-Widget switchwithRow({double? height, double? width, String? title}) {
+Widget switchwithRow(
+    {double? height,
+    double? width,
+    String? title,
+    bool? istrue,
+    Function(bool)? onchange}) {
   return Container(
     height: height! * 0.060,
     width: width,
@@ -105,8 +110,8 @@ Widget switchwithRow({double? height, double? width, String? title}) {
               fontFamily: AppFonts.segoeui),
         ),
         CupertinoSwitch(
-          value: true,
-          onChanged: (v) {},
+          value: istrue!,
+          onChanged: onchange,
           activeColor: greenColor,
         )
       ],

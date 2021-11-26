@@ -34,80 +34,80 @@ class _SignUpState extends State<SignUp> {
                     EdgeInsets.symmetric(horizontal: 5.0.w, vertical: 5.0.w),
                 child: Column(
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Sign up as:',
-                        style: TextStyle(
-                          fontFamily: AppFonts.segoeui,
-                          fontSize: 12,
-                          color: const Color(0xff000000),
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            controller.individual.value = true;
-                          },
-                          child: Row(
-                            children: [
-                              controller.individual.value
-                                  ? customRadio(
-                                      color: primaryColor, isActive: true)
-                                  : customRadio(
-                                      color: greyColor, isActive: false),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                'Individual',
-                                style: TextStyle(
-                                  fontFamily: AppFonts.segoeui,
-                                  fontSize: 10,
-                                  color: const Color(0xff000000),
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            controller.individual.value = false;
-                          },
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 20,
-                              ),
-                              !controller.individual.value
-                                  ? customRadio(
-                                      color: primaryColor, isActive: true)
-                                  : customRadio(
-                                      color: greyColor, isActive: false),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                'Business',
-                                style: TextStyle(
-                                  fontFamily: AppFonts.segoeui,
-                                  fontSize: 10,
-                                  color: const Color(0xff000000),
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Align(
+                    //   alignment: Alignment.centerLeft,
+                    //   child: Text(
+                    //     'Sign up as:',
+                    //     style: TextStyle(
+                    //       fontFamily: AppFonts.segoeui,
+                    //       fontSize: 12,
+                    //       color: const Color(0xff000000),
+                    //     ),
+                    //     textAlign: TextAlign.left,
+                    //   ),
+                    // ),
+                    // SizedBox(
+                    //   height: 15,
+                    // ),
+                    // Row(
+                    //   children: [
+                    //     InkWell(
+                    //       onTap: () {
+                    //         controller.individual.value = true;
+                    //       },
+                    //       child: Row(
+                    //         children: [
+                    //           controller.individual.value
+                    //               ? customRadio(
+                    //                   color: primaryColor, isActive: true)
+                    //               : customRadio(
+                    //                   color: greyColor, isActive: false),
+                    //           SizedBox(
+                    //             width: 10,
+                    //           ),
+                    //           Text(
+                    //             'Individual',
+                    //             style: TextStyle(
+                    //               fontFamily: AppFonts.segoeui,
+                    //               fontSize: 10,
+                    //               color: const Color(0xff000000),
+                    //             ),
+                    //             textAlign: TextAlign.left,
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //     InkWell(
+                    //       onTap: () {
+                    //         controller.individual.value = false;
+                    //       },
+                    //       child: Row(
+                    //         children: [
+                    //           SizedBox(
+                    //             width: 20,
+                    //           ),
+                    //           !controller.individual.value
+                    //               ? customRadio(
+                    //                   color: primaryColor, isActive: true)
+                    //               : customRadio(
+                    //                   color: greyColor, isActive: false),
+                    //           SizedBox(
+                    //             width: 10,
+                    //           ),
+                    //           Text(
+                    //             'Business',
+                    //             style: TextStyle(
+                    //               fontFamily: AppFonts.segoeui,
+                    //               fontSize: 10,
+                    //               color: const Color(0xff000000),
+                    //             ),
+                    //             textAlign: TextAlign.left,
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     SizedBox(
                       height: 15,
                     ),

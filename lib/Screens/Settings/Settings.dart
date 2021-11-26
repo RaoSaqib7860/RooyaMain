@@ -1,9 +1,16 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/AppThemes/AppThemes.dart';
+import 'package:rooya_app/Screens/AuthScreens/sign_in_tabs_handle.dart';
+import 'package:rooya_app/Screens/Settings/FolowRequest/FolowRequest.dart';
 import 'package:rooya_app/utils/AppFonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ChangePassword/ChangePassword.dart';
 import 'Components/Componenets.dart';
 import 'General/General.dart';
@@ -20,6 +27,16 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  bool enable_notification = false;
+  GetStorage storage = GetStorage();
+
+  @override
+  void initState() {
+    enable_notification =
+        storage.read('enable_allNotification') == '0' ? false : true;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (c, size) {
@@ -126,6 +143,16 @@ class _SettingsState extends State<Settings> {
                 ),
                 InkWell(
                   onTap: () {
+                    Get.to(FolowRequest());
+                  },
+                  child: settingRow(
+                      width: width,
+                      height: height,
+                      title: 'FOLLOW REQUEST',
+                      svgname: 'assets/svg/verification.svg'),
+                ),
+                InkWell(
+                  onTap: () {
                     Get.to(MyInformation());
                   },
                   child: settingRow(
@@ -163,8 +190,19 @@ class _SettingsState extends State<Settings> {
                         ],
                       ),
                       CupertinoSwitch(
-                        value: true,
-                        onChanged: (v) {},
+                        value: enable_notification,
+                        onChanged: (v) {
+                          setState(() {
+                            enable_notification = v;
+                          });
+                          if (v) {
+                            allNotifyEnableDisbale('1');
+                            storage.write('enable_allNotification', '1');
+                          } else {
+                            allNotifyEnableDisbale('0');
+                            storage.write('enable_allNotification', '0');
+                          }
+                        },
                         activeColor: greenColor,
                       )
                     ],
@@ -253,11 +291,26 @@ class _SettingsState extends State<Settings> {
                     width: width,
                     title: 'BLOCKED USERS',
                     textColor: Color(0xffE59307)),
-                seetingRowWithOutIcon(
-                    height: height,
-                    width: width,
-                    title: 'DELETE ACCOUNT',
-                    textColor: Color(0xffEC2B17)),
+                // seetingRowWithOutIcon(
+                //     height: height,
+                //     width: width,
+                //     title: 'DELETE ACCOUNT',
+                //     textColor: Color(0xffEC2B17)),
+                InkWell(
+                  onTap: () async {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    GetStorage storage = GetStorage();
+                    prefs.clear();
+                    storage.erase();
+                    Get.offAll(SignInTabsHandle());
+                  },
+                  child: seetingRowWithOutIcon(
+                      height: height,
+                      width: width,
+                      title: 'Logout',
+                      textColor: Color(0xffEC2B17)),
+                ),
                 SizedBox(
                   height: height * 0.020,
                 ),
@@ -268,5 +321,18 @@ class _SettingsState extends State<Settings> {
         ),
       ));
     });
+  }
+
+//https://apis.rooya.com/Alphaapis/allNotifyEnableDisbale?code=ROOYA-5574499
+
+  Future<void> allNotifyEnableDisbale(String? action) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = await prefs.getString('user_id');
+    String? token = await prefs.getString('token');
+    final response = await http.post(
+        Uri.parse('${baseUrl}allNotifyEnableDisbale$code'),
+        headers: {"Content-Type": "application/json", "Authorization": token!},
+        body: jsonEncode({"user_id": userId, "action": "$action"}));
+    print('response is = ${response.body}');
   }
 }

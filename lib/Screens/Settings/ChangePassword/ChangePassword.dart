@@ -1,9 +1,16 @@
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rooya_app/ApiUtils/baseUrl.dart';
 import 'package:rooya_app/AppThemes/AppThemes.dart';
 import 'package:rooya_app/Screens/Settings/Components/Componenets.dart';
 import 'package:rooya_app/utils/AppFonts.dart';
+import 'package:rooya_app/utils/ProgressHUD.dart';
+import 'package:rooya_app/utils/SnackbarCustom.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({Key? key}) : super(key: key);
@@ -13,12 +20,20 @@ class ChangePassword extends StatefulWidget {
 }
 
 class _ChangePasswordState extends State<ChangePassword> {
+  TextEditingController currentpasswordCon = TextEditingController();
+  TextEditingController newpasswordCon = TextEditingController();
+  TextEditingController re_passwordCon = TextEditingController();
+  bool loading = false;
+  GetStorage storage = GetStorage();
+
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (c, size) {
-      var height = size.maxHeight;
-      var width = size.maxWidth;
-      return SafeArea(
+    var height = Get.height;
+    var width = Get.width;
+    return ProgressHUD(
+      inAsyncCall: loading,
+      opacity: 0.7,
+      child: SafeArea(
           child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -47,7 +62,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 height: height * 0.010,
               ),
               TextFieldsProfileCustom(
-                // controller: _provider.lNameCont,
+                controller: currentpasswordCon,
                 hint: 'Current Password'.tr,
                 uperhint: 'Current Password'.tr,
                 width: width,
@@ -60,7 +75,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 height: height * 0.020,
               ),
               TextFieldsProfileCustom(
-                // controller: _provider.lNameCont,
+                controller: newpasswordCon,
                 hint: 'New Password'.tr,
                 uperhint: 'New Password'.tr,
                 width: width,
@@ -73,7 +88,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 height: height * 0.020,
               ),
               TextFieldsProfileCustom(
-                // controller: _provider.lNameCont,
+                controller: re_passwordCon,
                 hint: 'Re-Enter New Password'.tr,
                 uperhint: 'Re-Enter New Password'.tr,
                 width: width,
@@ -88,24 +103,42 @@ class _ChangePasswordState extends State<ChangePassword> {
               switchwithRow(
                   height: height,
                   width: width,
+                  istrue: true,
+                  onchange: (v) {},
                   title: 'Two Factor Authentication'),
               SizedBox(
                 height: height * 0.030,
               ),
-              Container(
-                height: height * 0.060,
-                width: width,
-                child: Center(
-                  child: Text(
-                    'UPDATE',
-                    style: TextStyle(
-                        fontFamily: AppFonts.segoeui,
-                        fontSize: 13,
-                        color: Colors.white),
+              InkWell(
+                onTap: () async {
+                  if (newpasswordCon.text == re_passwordCon.text) {
+                    setState(() {
+                      loading = true;
+                    });
+                    await updatePrivicy();
+                    setState(() {
+                      loading = false;
+                    });
+                  } else {
+                    snackBarFailer('Your password did not match');
+                  }
+                },
+                child: Container(
+                  height: height * 0.060,
+                  width: width,
+                  child: Center(
+                    child: Text(
+                      'UPDATE',
+                      style: TextStyle(
+                          fontFamily: AppFonts.segoeui,
+                          fontSize: 13,
+                          color: Colors.white),
+                    ),
                   ),
+                  decoration: BoxDecoration(
+                      color: greenColor,
+                      borderRadius: BorderRadius.circular(5)),
                 ),
-                decoration: BoxDecoration(
-                    color: greenColor, borderRadius: BorderRadius.circular(5)),
               ),
               SizedBox(
                 height: height * 0.050,
@@ -113,8 +146,22 @@ class _ChangePasswordState extends State<ChangePassword> {
             ],
           ),
         ),
-      ));
-    });
+      )),
+    );
+  }
+
+  Future<void> updatePrivicy() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = await prefs.getString('user_id');
+    String? token = await prefs.getString('token');
+    final response = await http.post(Uri.parse('${baseUrl}changePassword$code'),
+        headers: {"Content-Type": "application/json", "Authorization": token!},
+        body: jsonEncode({
+          "userinfo": await prefs.getString('user_email'),
+          "old_password": currentpasswordCon.text,
+          "new_password": newpasswordCon.text
+        }));
+    print('response is = ${response.body}');
   }
 }
 

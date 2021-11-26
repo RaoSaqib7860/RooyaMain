@@ -9,6 +9,9 @@ import '../Home/home.dart';
 import '../menu.dart';
 import '../../CreateSouq/rooya_souq.dart';
 
+PersistentTabController? persistentcontroller;
+bool selectHome = true;
+
 class BottomSheetCustom extends StatefulWidget {
   const BottomSheetCustom({Key? key}) : super(key: key);
 
@@ -17,11 +20,9 @@ class BottomSheetCustom extends StatefulWidget {
 }
 
 class _BottomSheetCustomState extends State<BottomSheetCustom> {
-  PersistentTabController? _controller;
-
   @override
   void initState() {
-    _controller = PersistentTabController(initialIndex: 0);
+    persistentcontroller = PersistentTabController(initialIndex: 0);
     super.initState();
   }
 
@@ -30,9 +31,9 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
     return SafeArea(
       child: PersistentTabView(
         context,
-        controller: _controller,
         screens: _buildScreens(),
         items: _navBarsItems(),
+        controller: persistentcontroller,
         confineInSafeArea: true,
         backgroundColor: Colors.white,
         // Default is Colors.white.
@@ -47,6 +48,19 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
         onItemSelected: (index) {
           if (index != 2) {
             streamController.sink.add(10.0);
+          }
+          if (index == 0) {
+            if (selectHome) {
+              scrollController.animateTo(
+                scrollController.position.minScrollExtent,
+                duration: Duration(seconds: 1),
+                curve: Curves.fastOutSlowIn,
+              );
+            } else {
+              selectHome = true;
+            }
+          } else {
+            selectHome = false;
           }
         },
         popAllScreensOnTapOfSelectedTab: true,
@@ -98,7 +112,7 @@ class _BottomSheetCustomState extends State<BottomSheetCustom> {
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
       PersistentBottomNavBarItem(
-          icon: Icon(Icons.lock),
+          icon: Icon(Icons.shopping_basket_outlined),
           activeColorPrimary: Colors.black,
           inactiveColorPrimary: greyColor),
       PersistentBottomNavBarItem(
